@@ -25,7 +25,9 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post('https://itdesk-backend.vercel.app/api/users/login', formData);
+      const res = await axios.post('https://itdesk-backend.vercel.app/api/users/login', formData, {
+        withCredentials: true,
+      });
       login(res.data.token); // Save token and set isAuthenticated to true
       setToast({ show: true, message: 'Login successful!' });
       navigate('/dashboard');
