@@ -133,7 +133,7 @@ const NavbarComponent = () => {
   return (
     <>
       <Navbar fluid rounded>
-        <Navbar.Brand href="https://flowbite-react.com">
+        <Navbar.Brand href="#">
           <img src="https://flowbite-react.com/favicon.svg" className="mr-6 h-9 sm:h-9" alt="Flowbite React Logo" />
           <span className="ml-2 self-center whitespace-nowrap text-xl font-semibold dark:text-white">IT Service HelpDesk - {getRoleText()}</span>
         </Navbar.Brand>
