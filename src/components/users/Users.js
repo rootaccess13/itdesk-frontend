@@ -21,7 +21,7 @@ const Users = () => {
   const fetchUsers = async (page) => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:5001/api/users?page=${page}&limit=7`, {
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/users?page=${page}&limit=7`, {
         headers: { Authorization: `${localStorage.getItem('token')}` }
       });
       console.log('Users:', res); // Debug log for users
@@ -36,7 +36,7 @@ const Users = () => {
 
   const fetchConfirmedUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:5001/api/users/confirmed', {
+      const res = await axios.get('https://itdesk-backend.vercel.app/api/users/confirmed', {
         headers: { Authorization: `${localStorage.getItem('token')}` }
       });
       console.log('Confirmed Users:', res); // Debug log for confirmed users
@@ -55,7 +55,7 @@ const Users = () => {
   const handleConfirm = async (id, action) => {
     try {
       const endpoint = action === 'accept' ? `/confirm/${id}` : `/decline/${id}`;
-      await axios.put(`http://localhost:5001/api/users${endpoint}`, {}, {
+      await axios.put(`https://itdesk-backend.vercel.app/api/users${endpoint}`, {}, {
         headers: { Authorization: `${localStorage.getItem('token')}` }
       });
       setToast({ show: true, message: `User ${action === 'accept' ? 'confirmed' : 'declined'} successfully` });

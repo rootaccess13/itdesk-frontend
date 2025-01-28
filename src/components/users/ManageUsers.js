@@ -26,7 +26,7 @@ const ManageUsers = () => {
   const fetchUsers = useCallback(async (page) => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:5001/api/users/manage?page=${page}&limit=10&status=${filterStatus}`, {
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/users/manage?page=${page}&limit=10&status=${filterStatus}`, {
         headers: { Authorization: `${localStorage.getItem('token')}` }
       });
       setUsers(res.data.users);
@@ -80,7 +80,7 @@ const ManageUsers = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5001/api/users/manage/edit/${selectedUser._id}`, formData, {
+      await axios.put(`https://itdesk-backend.vercel.app/api/users/manage/edit/${selectedUser._id}`, formData, {
         headers: { Authorization: `${localStorage.getItem('token')}` }
       });
       setShowModal(false);

@@ -31,7 +31,7 @@ const FolderDetails = () => {
   useEffect(() => {
     const fetchFolder = async () => {
       try {
-        const response = await fetch(`http://localhost:5001/api/assets/folder/${id}`);
+        const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/${id}`);
         if (response.ok) {
           const data = await response.json();
           setFolder(data);
@@ -51,7 +51,7 @@ const FolderDetails = () => {
   useEffect(() => {
     const fetchFolders = async () => {
       try {
-        const response = await fetch(`http://localhost:5001/api/assets/folder/list`);
+        const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/list`);
         if (response.ok) {
           const data = await response.json();
           setFolders(data);
@@ -93,7 +93,7 @@ const FolderDetails = () => {
     formData.append('folderId', id); // Assuming you need to send folder ID
 
     try {
-      const response = await fetch(`http://localhost:5001/api/assets/create`, {
+      const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/create`, {
         method: 'POST',
         body: formData,
       });
@@ -123,7 +123,7 @@ const FolderDetails = () => {
 
   const handleMoveFile = async () => {
     try {
-      const response = await fetch(`http://localhost:5001/api/assets/move`, {
+      const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/move`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -181,7 +181,7 @@ const FolderDetails = () => {
           <tr key={asset._id}>
             <td className="p-2">
               <a
-                href={`http://localhost:5001/${asset.assetPath}`}
+                href={`https://itdesk-backend.vercel.app/${asset.assetPath}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 underline flex items-center gap-2"

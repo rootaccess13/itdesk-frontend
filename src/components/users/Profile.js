@@ -28,7 +28,7 @@ const Profile = () => {
     const fetchUserData = async () => {
         setLoading(true);
         try {
-            const res = await axios.get("http://localhost:5001/api/users/me", {
+            const res = await axios.get("https://itdesk-backend.vercel.app/api/users/me", {
                 headers: { Authorization: localStorage.getItem("token") },
             });
             setUser(res.data);
@@ -53,7 +53,7 @@ const Profile = () => {
     const handleSave = async () => {
         setLoading(true);
         try {
-            await axios.put("http://localhost:5001/api/users/me", formData, {
+            await axios.put("https://itdesk-backend.vercel.app/api/users/me", formData, {
                 headers: { Authorization: localStorage.getItem("token") },
             });
             setIsEditing(false);

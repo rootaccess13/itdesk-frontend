@@ -25,7 +25,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post('http://localhost:5001/api/users/login', formData);
+      const res = await axios.post('https://itdesk-backend.vercel.app/api/users/login', formData);
       login(res.data.token); // Save token and set isAuthenticated to true
       setToast({ show: true, message: 'Login successful!' });
       navigate('/dashboard');
@@ -47,7 +47,7 @@ const Login = () => {
       };
   
       try {
-        const res = await axios.post('http://localhost:5001/api/users/login', loginData);
+        const res = await axios.post('https://itdesk-backend.vercel.app/api/users/login', loginData);
         console.log(res.data);
         login(res.data.token);
         setToast({ show: true, message: 'Login successful!' });

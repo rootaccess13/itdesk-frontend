@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserData = async (token) => {
     try {
-      const res = await axios.get('http://localhost:5001/api/users/me', {
+      const res = await axios.get('https://itdesk-backend.vercel.app/api/users/me', {
         headers: { Authorization: token },
       });
       setUser(res.data);

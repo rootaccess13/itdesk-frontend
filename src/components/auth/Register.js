@@ -35,7 +35,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:5001/api/users/register', newUser);
+      const res = await axios.post('https://itdesk-backend.vercel.app/api/users/register', newUser);
       console.log(res.data);
       setToast({ show: true, message: "Registration successful, wait for administrator to confirm your account." });
       setFormData({
@@ -79,7 +79,7 @@ const Register = () => {
       };
 
       try {
-        const res = await axios.post('http://localhost:5001/api/users/register', newUser);
+        const res = await axios.post('https://itdesk-backend.vercel.app/api/users/register', newUser);
         console.log(res.data);
         setToast({ show: true, message: "Registration successful, wait for administrator to confirm your account." });
         setFormData({

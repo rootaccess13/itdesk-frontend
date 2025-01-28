@@ -17,7 +17,7 @@ const Articles = () => {
     useEffect(() => {
         const fetchArticles = async () => {
             try {
-                const response = await fetch("http://localhost:5001/api/articles");
+                const response = await fetch("https://itdesk-backend.vercel.app/api/articles");
                 if (response.ok) {
                     const articlesData = await response.json();
                     setArticles(articlesData);
@@ -51,7 +51,7 @@ const Articles = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:5001/api/articles/create", {
+            const response = await fetch("https://itdesk-backend.vercel.app/api/articles/create", {
                 method: "POST",
                 body: formData,
             });

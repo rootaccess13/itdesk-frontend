@@ -60,7 +60,7 @@ const Incident = () => {
                 form.append('attachments', file);
             });
 
-            const response = await axios.post('http://localhost:5001/api/tickets/create', form, {
+            const response = await axios.post('https://itdesk-backend.vercel.app/api/tickets/create', form, {
                 headers: { Authorization: `${localStorage.getItem('token')}`, 'Content-Type': 'multipart/form-data' }
             });
 

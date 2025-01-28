@@ -41,7 +41,7 @@ const Tickets = () => {
     setLoading(true);
     try {
       console.log(`Fetching tickets: page=${page}, filterStatus=${filterStatus}, escalationLevel=${user.role}`); // Debugging
-      const res = await axios.get(`http://localhost:5001/api/tickets`, {
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets`, {
         params: {
           page: page,
           limit: 6,
@@ -101,7 +101,7 @@ const Tickets = () => {
       });
 
       try {
-        const res = await axios.put(`http://localhost:5001/api/tickets/edit/${_id}`, updatedFormData, {
+        const res = await axios.put(`https://itdesk-backend.vercel.app/api/tickets/edit/${_id}`, updatedFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `${localStorage.getItem('token')}`
@@ -154,7 +154,7 @@ const Tickets = () => {
       });
 
       try {
-        const res = await axios.post('http://localhost:5001/api/tickets/create', newFormData, {
+        const res = await axios.post('https://itdesk-backend.vercel.app/api/tickets/create', newFormData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `${localStorage.getItem('token')}`
@@ -211,7 +211,7 @@ const Tickets = () => {
 
   const handleTakeTicket = async () => {
     try {
-      const res = await axios.put(`http://localhost:5001/api/tickets/edit/${selectedTicketId}`, { assignedTo: user.username, status: "In Progress" }, {
+      const res = await axios.put(`https://itdesk-backend.vercel.app/api/tickets/edit/${selectedTicketId}`, { assignedTo: user.username, status: "In Progress" }, {
         headers: {
           'Authorization': `${localStorage.getItem('token')}`
         }
@@ -246,7 +246,7 @@ const Tickets = () => {
 
   const handleExport = async () => {
     try {
-      const res = await axios.get(`http://localhost:5001/api/tickets/export?status=${filterStatus}`, {
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/export?status=${filterStatus}`, {
         headers: { Authorization: localStorage.getItem('token') },
         responseType: 'blob' // Important to handle the binary data
       });

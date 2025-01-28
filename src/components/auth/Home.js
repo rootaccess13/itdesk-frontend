@@ -11,7 +11,7 @@ const Home = () => {
 
     const fetchArticles = useCallback(async () => {
         try {
-            const response = await fetch("http://localhost:5001/api/articles");
+            const response = await fetch("https://itdesk-backend.vercel.app/api/articles");
             if (response.ok) {
                 const data = await response.json();
                 setArticles(data);
@@ -75,7 +75,7 @@ const Home = () => {
                                     <Card className="max-w-sm gap-0 m-0">
                                         {article.background_image && (
                                             <img
-                                                src={`http://localhost:5001/${article.background_image}`}
+                                                src={`https://itdesk-backend.vercel.app/${article.background_image}`}
                                                 alt={article.title}
                                                 className="w-full h-48 object-cover rounded-t-md"
                                             />

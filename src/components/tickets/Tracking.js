@@ -20,7 +20,7 @@ const Tracking = () => {
   const fetchFeedback = useCallback(async () => {
     try {
       if (ticket && ticket._id) {
-        const res = await axios.get(`http://localhost:5001/api/customerFeedbacks/${ticket._id}`, {
+        const res = await axios.get(`https://itdesk-backend.vercel.app/api/customerFeedbacks/${ticket._id}`, {
           headers: { Authorization: localStorage.getItem('token') }
         });
         setFeedbackData(res.data);
@@ -40,7 +40,7 @@ const Tracking = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`http://localhost:5001/api/tickets/track/${ticketNumber}`, {
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/track/${ticketNumber}`, {
         headers: { Authorization: localStorage.getItem('token') }
       });
       setTicket(res.data);
@@ -57,7 +57,7 @@ const Tracking = () => {
     setFeedbackSuccess(null);
     setFeedbackError(null);
     try {
-      await axios.post(`http://localhost:5001/api/customerFeedbacks/create/${ticket._id}`, {
+      await axios.post(`https://itdesk-backend.vercel.app/api/customerFeedbacks/create/${ticket._id}`, {
         feedback,
         rating,
         assignedTo

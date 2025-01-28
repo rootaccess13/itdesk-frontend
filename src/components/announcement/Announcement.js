@@ -20,7 +20,7 @@ const Announcement = () => {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/announcements');
+        const response = await fetch('https://itdesk-backend.vercel.app/api/announcements');
         if (response.ok) {
           const data = await response.json();
           setAnnouncements(data);
@@ -51,7 +51,7 @@ const Announcement = () => {
     formData.append('is_public', isPublic);
     formData.append('is_active', isActive);
     try {
-      const response = await fetch('http://localhost:5001/api/announcements/create', {
+      const response = await fetch('https://itdesk-backend.vercel.app/api/announcements/create', {
         method: 'POST',
         body: formData,
       });
@@ -107,7 +107,7 @@ const Announcement = () => {
                     />
                 ) : (
                     <img
-                    src="http://localhost:5001/uploads/banners/1722262677123_Screen Shot 2024-07-26 at 15.01.52 PM.png"
+                    src="https://itdesk-backend.vercel.app/uploads/banners/1722262677123_Screen Shot 2024-07-26 at 15.01.52 PM.png"
                     alt="Placeholder"
                     className="w-full h-48 object-cover"
                     />

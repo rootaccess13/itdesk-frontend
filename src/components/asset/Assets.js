@@ -13,7 +13,7 @@ const Assets = () => {
   useEffect(() => {
     const fetchFolders = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/assets/folder/list');
+        const response = await fetch('https://itdesk-backend.vercel.app/api/assets/folder/list');
         if (response.ok) {
           const data = await response.json();
           setFolders(data);
@@ -32,7 +32,7 @@ const Assets = () => {
 
   const handleCreateFolder = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/assets/folder/create', {
+      const response = await fetch('https://itdesk-backend.vercel.app/api/assets/folder/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ category: newFolderCategory }),

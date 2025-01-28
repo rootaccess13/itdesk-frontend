@@ -21,7 +21,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Fetch the total number of tickets from the backend
-    axios.get('http://localhost:5001/api/tickets/count', {
+    axios.get('https://itdesk-backend.vercel.app/api/tickets/count', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => {
@@ -32,7 +32,7 @@ const Dashboard = () => {
       });
 
     // Fetch the number of tickets in progress from the backend
-    axios.get('http://localhost:5001/api/tickets/count?status=In Progress', {
+    axios.get('https://itdesk-backend.vercel.app/api/tickets/count?status=In Progress', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => {
@@ -43,7 +43,7 @@ const Dashboard = () => {
       });
 
     // Fetch the number of tickets resolved from the backend
-    axios.get('http://localhost:5001/api/tickets/count?status=Resolved', {
+    axios.get('https://itdesk-backend.vercel.app/api/tickets/count?status=Resolved', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => {
@@ -54,7 +54,7 @@ const Dashboard = () => {
       });
 
     // Fetch the number of tickets closed from the backend
-    axios.get('http://localhost:5001/api/tickets/count?status=Closed', {
+    axios.get('https://itdesk-backend.vercel.app/api/tickets/count?status=Closed', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => {
@@ -72,7 +72,7 @@ const Dashboard = () => {
 
   const fetchMyTicketCount = async (userId) => {
     try {
-      const res = await axios.get(`http://localhost:5001/api/tickets/count/personal/${userId}?status=Open`, {
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/count/personal/${userId}?status=Open`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setMyTicketCount(res.data.count);
@@ -80,7 +80,7 @@ const Dashboard = () => {
       console.error(err);
     }
     try {
-      const res = await axios.get(`http://localhost:5001/api/tickets/count/personal/${userId}?status=In Progress`, {
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/count/personal/${userId}?status=In Progress`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setMyTicketCountProgress(res.data.count);
@@ -88,7 +88,7 @@ const Dashboard = () => {
       console.error(err);
     }
     try {
-      const res = await axios.get(`http://localhost:5001/api/tickets/count/personal/${userId}?status=Resolved`, {
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/count/personal/${userId}?status=Resolved`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setMyTicketCountResolved(res.data.count);
@@ -99,7 +99,7 @@ const Dashboard = () => {
 
   const handleCardClick = (status, title, id) => {
     setModalTitle(title);
-    axios.get(`http://localhost:5001/api/tickets/by-status?status=${status}&id=${id}`, {
+    axios.get(`https://itdesk-backend.vercel.app/api/tickets/by-status?status=${status}&id=${id}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => {

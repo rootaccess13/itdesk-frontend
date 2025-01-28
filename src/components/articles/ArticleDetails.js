@@ -17,7 +17,7 @@ const ArticleDetails = () => {
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/articles/${id}`);
+        const response = await axios.get(`https://itdesk-backend.vercel.app/api/articles/${id}`);
         setArticle(response.data);
         setLikes(response.data.likes.length);
         setLoading(false);
@@ -34,7 +34,7 @@ const ArticleDetails = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/articles/${id}/comments`,
+        `https://itdesk-backend.vercel.app/api/articles/${id}/comments`,
         { content: comment },
         { headers: { Authorization: `${localStorage.getItem('token')}` } }
       );
@@ -48,7 +48,7 @@ const ArticleDetails = () => {
   const handleReplySubmit = async (commentId) => {
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/articles/${id}/comments/${commentId}/replies`,
+        `https://itdesk-backend.vercel.app/api/articles/${id}/comments/${commentId}/replies`,
         { content: reply },
         { headers: { Authorization: `${localStorage.getItem('token')}` } }
       );
@@ -63,7 +63,7 @@ const ArticleDetails = () => {
   const handleLike = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/articles/${id}/likes`,
+        `https://itdesk-backend.vercel.app/api/articles/${id}/likes`,
         {},
         { headers: { Authorization: `${localStorage.getItem('token')}` } }
       );
@@ -86,7 +86,7 @@ const ArticleDetails = () => {
       <div className='p-2 rounded-lg'>
         {article.background_image && (
           <img
-            src={`http://localhost:5001/${article.background_image}`}
+            src={`https://itdesk-backend.vercel.app/${article.background_image}`}
             alt={article.title}
             className="w-full h-64 object-cover mb-4 rounded-md"
           />
