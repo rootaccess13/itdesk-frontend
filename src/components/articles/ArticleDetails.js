@@ -86,7 +86,7 @@ const ArticleDetails = () => {
       <div className='p-2 rounded-lg'>
         {article.background_image && (
           <img
-            src={`https://itdesk-backend.vercel.app/${article.background_image}`}
+            src={`${article.background_image}`}
             alt={article.title}
             className="w-full h-64 object-cover mb-4 rounded-md"
           />
