@@ -40,13 +40,13 @@ const Tickets = () => {
   const fetchTickets = useCallback(async (page) => {
     setLoading(true);
     try {
-      console.log(`Fetching tickets: page=${page}, filterStatus=${filterStatus}, escalationLevel=${user.role}`); // Debugging
+      console.log(`Fetching tickets: page=${page}, filterStatus=${filterStatus}`); // Debugging
       const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets`, {
         params: {
           page: page,
           limit: 6,
           status: filterStatus,
-          escalationLevel: user.role
+          // escalationLevel: user.role
         },
         headers: { Authorization: localStorage.getItem('token') }
       });
@@ -58,7 +58,7 @@ const Tickets = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, user.role]); // Include filterStatus and user.role as dependencies
+  }, [filterStatus]); // Include filterStatus and user.role as dependencies
 
   useEffect(() => {
     console.log('Component mounted or dependencies changed');
