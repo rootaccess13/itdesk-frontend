@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Sidebar,
   SidebarItem,
@@ -13,28 +13,57 @@ const SidebarComponent = () => {
 
   return (
     <Sidebar className="h-full">
-      <SidebarItems>
+      <SidebarItems className="space-y-2">
         <SidebarItemGroup>
-          <SidebarItem href="/dashboard" icon={FaHome}>
-            Dashboard
+          <SidebarItem
+            href="/dashboard"
+            icon={FaHome}
+            className="flex sm:flex-row sm:space-x-2 sm:px-3 sm:py-2 sm:w-auto w-12 justify-center"
+          >
+            <span className="sm:inline hidden">Dashboard</span>
           </SidebarItem>
-          <SidebarItem href="/tickets" icon={FaUsers}>
-            Tickets
+
+          <SidebarItem
+            href="/tickets"
+            icon={FaUsers}
+            className="flex sm:flex-row sm:space-x-2 sm:px-3 sm:py-2 sm:w-auto w-12 justify-center"
+          >
+            <span className="sm:inline hidden">Tickets</span>
           </SidebarItem>
-          <SidebarItem href="/assets" icon={FaCogs}>
-            Assets
+
+          <SidebarItem
+            href="/assets"
+            icon={FaCogs}
+            className="flex sm:flex-row sm:space-x-2 sm:px-3 sm:py-2 sm:w-auto w-12 justify-center"
+          >
+            <span className="sm:inline hidden">Assets</span>
           </SidebarItem>
+
           {user && (user.role === 'staff' || user.role === 'administrator') && (
-            <SidebarItem href="/announcements" icon={FaBullhorn}>
-              Announcements
+            <SidebarItem
+              href="/announcements"
+              icon={FaBullhorn}
+              className="flex sm:flex-row sm:space-x-2 sm:px-3 sm:py-2 sm:w-auto w-12 justify-center"
+            >
+              <span className="sm:inline hidden">Announcements</span>
             </SidebarItem>
           )}
-          <SidebarItem href="/articles" icon={FaBook}>
-            Articles
+
+          <SidebarItem
+            href="/articles"
+            icon={FaBook}
+            className="flex sm:flex-row sm:space-x-2 sm:px-3 sm:py-2 sm:w-auto w-12 justify-center"
+          >
+            <span className="sm:inline hidden">Articles</span>
           </SidebarItem>
+
           {user && (user.role === 'staff' || user.role === 'administrator') && (
-            <SidebarItem href="/users" icon={FaUser}>
-              Users
+            <SidebarItem
+              href="/users"
+              icon={FaUser}
+              className="flex sm:flex-row sm:space-x-2 sm:px-3 sm:py-2 sm:w-auto w-12 justify-center"
+            >
+              <span className="sm:inline hidden">Users</span>
             </SidebarItem>
           )}
         </SidebarItemGroup>
