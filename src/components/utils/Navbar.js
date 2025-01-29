@@ -1,8 +1,9 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Navbar, NavbarCollapse, NavbarLink, NavbarToggle, Dropdown, Modal } from 'flowbite-react';
+import { Navbar, Dropdown, Modal } from 'flowbite-react';
 import { FiBell, FiUser } from 'react-icons/fi'; // Import the user icon
 import AuthContext from '../../context/AuthContext';
+import '../../styles/styles.css';
 
 const NavbarComponent = () => {
   const { isAuthenticated, logout, user } = useContext(AuthContext); // Get userId from context
@@ -126,7 +127,7 @@ const NavbarComponent = () => {
       case 'network-team':
         return 'Network Team';
       default:
-        return 'IT Service HelpDesk';
+        return 'Platform';
     }
   };
 
@@ -134,17 +135,16 @@ const NavbarComponent = () => {
     <>
       <Navbar fluid rounded>
         <Navbar.Brand href="#">
-          <img src="https://flowbite-react.com/favicon.svg" className="mr-6 h-9 sm:h-9" alt="Flowbite React Logo" />
-          <span className="ml-2 self-center whitespace-nowrap text-xl font-semibold dark:text-white">IT Service HelpDesk - {getRoleText()}</span>
+          <span className="ml-2 self-center whitespace-nowrap text-xl font-semibold dark:text-white">ITDesk - {getRoleText()}</span>
         </Navbar.Brand>
-        <NavbarToggle />
-        <NavbarCollapse>
+        <Navbar.Toggle />
+        <Navbar.Collapse>
           {isAuthenticated ? (
             <>
-              <NavbarLink as={Link} to={location.pathname === '/dashboard' ? '/' : '/dashboard'} active>
+              <Navbar.Link as={Link} to={location.pathname === '/dashboard' ? '/' : '/dashboard'} active>
                 {location.pathname === '/dashboard' ? 'Home' : 'Dashboard'}
-              </NavbarLink>
-              <NavbarLink className="relative">
+              </Navbar.Link>
+              <Navbar.Link className="relative">
                 <Dropdown
                   label={
                     <div className="relative">
@@ -180,8 +180,8 @@ const NavbarComponent = () => {
                     )}
                   </div>
                 </Dropdown>
-              </NavbarLink>
-              <NavbarLink>
+              </Navbar.Link>
+              <Navbar.Link>
                 <Dropdown
                   label={
                     <div className="flex items-center">
@@ -199,27 +199,27 @@ const NavbarComponent = () => {
                     Logout
                   </Dropdown.Item>
                 </Dropdown>
-              </NavbarLink>
+              </Navbar.Link>
             </>
           ) : (
             <>
-              <NavbarLink as={Link} to="/" active>
+              <Navbar.Link as={Link} to="/" active>
                 Home
-              </NavbarLink>
-              <NavbarLink as={Link} to="/incident" active>
-               Incident
-              </NavbarLink>
-              <NavbarLink as={Link} to="/register">
+              </Navbar.Link>
+              <Navbar.Link as={Link} to="/incident" active>
+                Incident
+              </Navbar.Link>
+              <Navbar.Link as={Link} to="/register">
                 Register
-              </NavbarLink>
-              <NavbarLink as={Link} to="/login">
+              </Navbar.Link>
+              <Navbar.Link as={Link} to="/login">
                 Login
-              </NavbarLink>
+              </Navbar.Link>
             </>
           )}
-        </NavbarCollapse>
+        </Navbar.Collapse>
       </Navbar>
-
+  
       {/* Modal for Notification Details */}
       <Modal show={isModalOpen} onClose={handleCloseModal}>
         <Modal.Header>{selectedNotification?.title || 'Notification Details'}</Modal.Header>
