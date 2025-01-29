@@ -75,7 +75,7 @@ const Home = () => {
                                     <Card className="max-w-sm gap-0 m-0">
                                         {article.background_image && (
                                             <img
-                                                src={`https://itdesk-backend.vercel.app/${article.background_image}`}
+                                                src={`${article.background_image}`}
                                                 alt={article.title}
                                                 className="w-full h-48 object-cover rounded-t-md"
                                             />
