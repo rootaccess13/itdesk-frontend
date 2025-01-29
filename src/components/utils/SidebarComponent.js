@@ -13,7 +13,7 @@ const SidebarComponent = () => {
 
   return (
     <Sidebar className="h-full">
-      <SidebarItems className="space-y-2">
+      <SidebarItems>
         <SidebarItemGroup>
           <SidebarItem
             href="/dashboard"
