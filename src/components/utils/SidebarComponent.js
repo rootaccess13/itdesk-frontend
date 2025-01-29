@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import {
   Sidebar,
   SidebarItem,
@@ -12,13 +12,13 @@ const SidebarComponent = () => {
   const { user } = useContext(AuthContext);
 
   return (
-    <Sidebar className="h-full">
+    <Sidebar className="h-full w-16 sm:w-64 lg:w-72 bg-gray-800 text-white">
       <SidebarItems className="space-y-2">
         <SidebarItemGroup>
           <SidebarItem
             href="/dashboard"
             icon={FaHome}
-            className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:w-auto w-12 justify-center"
+            className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
           >
             <span className="sm:inline hidden">Dashboard</span>
           </SidebarItem>
@@ -26,7 +26,7 @@ const SidebarComponent = () => {
           <SidebarItem
             href="/tickets"
             icon={FaUsers}
-            className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:w-auto w-12 justify-center"
+            className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
           >
             <span className="sm:inline hidden">Tickets</span>
           </SidebarItem>
@@ -34,7 +34,7 @@ const SidebarComponent = () => {
           <SidebarItem
             href="/assets"
             icon={FaCogs}
-            className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:w-auto w-12 justify-center"
+            className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
           >
             <span className="sm:inline hidden">Assets</span>
           </SidebarItem>
@@ -43,7 +43,7 @@ const SidebarComponent = () => {
             <SidebarItem
               href="/announcements"
               icon={FaBullhorn}
-              className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:w-auto w-12 justify-center"
+              className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
             >
               <span className="sm:inline hidden">Announcements</span>
             </SidebarItem>
@@ -52,7 +52,7 @@ const SidebarComponent = () => {
           <SidebarItem
             href="/articles"
             icon={FaBook}
-            className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:w-auto w-12 justify-center"
+            className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
           >
             <span className="sm:inline hidden">Articles</span>
           </SidebarItem>
@@ -61,7 +61,7 @@ const SidebarComponent = () => {
             <SidebarItem
               href="/users"
               icon={FaUser}
-              className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:w-auto w-12 justify-center"
+              className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
             >
               <span className="sm:inline hidden">Users</span>
             </SidebarItem>
