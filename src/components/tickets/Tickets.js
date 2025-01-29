@@ -46,7 +46,7 @@ const Tickets = () => {
           page: page,
           limit: 6,
           status: filterStatus,
-          // escalationLevel: user.role
+          escalationLevel: user.role
         },
         headers: { Authorization: localStorage.getItem('token') }
       });
