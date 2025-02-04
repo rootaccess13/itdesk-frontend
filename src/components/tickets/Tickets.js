@@ -359,9 +359,9 @@ const Tickets = () => {
                   className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50"
                 >
                   <option value="">Select Team</option>
-                  <option value="Hardware Team">Hardware Team</option>
-                  <option value="Software Team">Software Team</option>
-                  <option value="Support Team">Support Team</option>
+                  <option value="IT">IT</option>
+                  <option value="HR">HR</option>
+                  <option value="Finance">Finance</option>
                 </select>
               </div>
               <div className="mb-4">
