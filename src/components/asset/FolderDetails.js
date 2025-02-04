@@ -181,7 +181,7 @@ const FolderDetails = () => {
           <tr key={asset._id}>
             <td className="p-2">
               <a
-                href={`https://itdesk-backend.vercel.app/${asset.assetPath}`}
+                href={`${asset.assetPath}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 underline flex items-center gap-2"
