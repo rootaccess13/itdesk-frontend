@@ -70,90 +70,107 @@ const Login = () => {
       return null;
     }
   };
-  return (
-    <>
-      <GoogleOAuthProvider clientId="36468434283-pj5p6ev61uasg63djvd4bv85ho4inm1r.apps.googleusercontent.com">
-        <form className="max-w-md mx-auto mt-4" onSubmit={onSubmit}>
-          <div className="relative z-0 w-full mb-5 group">
+    return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+      <div className="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign in to your account</h2>
+          <p className="text-gray-500">Welcome back! Please enter your details</p>
+        </div>
+
+        <form className="space-y-6" onSubmit={onSubmit}>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
             <input
               type="email"
               name="email"
-              id="floating_email"
-              className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-              placeholder=" "
+              id="email"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              placeholder="Enter your email"
               value={email}
               onChange={onChange}
               required
             />
-            <label
-              htmlFor="floating_email"
-              className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-            >
-              Email
-            </label>
           </div>
-          <div className="relative z-0 w-full mb-5 group">
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
             <input
               type="password"
               name="password"
-              id="floating_password"
-              className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-              placeholder=" "
+              id="password"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              placeholder="••••••••"
               value={password}
               onChange={onChange}
               required
             />
-            <label
-              htmlFor="floating_password"
-              className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-            >
-              Password
-            </label>
           </div>
+
           <button
             type="submit"
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 px-4 rounded-lg font-medium transition-all transform hover:scale-[1.01]"
           >
-            Login
+            Sign in
           </button>
-          <div className="flex flex-col items-center justify-center mt-2">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Or continue with</p>
-            <GoogleLogin
-              onSuccess={responseGoogle}
-              onError={() => {
-                console.log('Login Failed');
-              }}
-              useOneTap
-            />
+
+          <div className="relative mt-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <GoogleOAuthProvider clientId="36468434283-pj5p6ev61uasg63djvd4bv85ho4inm1r.apps.googleusercontent.com">
+              <GoogleLogin
+                onSuccess={responseGoogle}
+                onError={() => console.log('Login Failed')}
+                useOneTap
+                shape="pill"
+                theme="filled_blue"
+                size="large"
+                width="100%"
+                logo_alignment="center"
+              />
+            </GoogleOAuthProvider>
           </div>
         </form>
-      </GoogleOAuthProvider>
+
+        <div className="mt-6 text-center text-sm text-gray-600">
+          Don't have an account?{' '}
+          <a href="/register" className="text-blue-600 hover:text-blue-800 font-medium">
+            Sign up
+          </a>
+        </div>
+      </div>
 
       {toast.show && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-          <Toast>
-            <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200">
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 4.707a1 1 0 00-1.414-1.414L7 11.586 4.707 9.293a1 1 0 00-1.414 1.414l3 3a 1 1 0 001.414 0l9-9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="sr-only">Check icon</span>
+          <Toast className="border border-gray-200 shadow-xl">
+            <div className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ${toast.message.includes('success') ? 'bg-green-100 text-green-500' : 'bg-red-100 text-red-500'}`}>
+              {toast.message.includes('success') ? (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              )}
             </div>
             <div className="ml-3 text-sm font-normal">{toast.message}</div>
             <Toast.Toggle onClick={() => setToast({ ...toast, show: false })} />
           </Toast>
         </div>
       )}
-    </>
+    </div>
   );
 };
 
