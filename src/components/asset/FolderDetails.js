@@ -217,7 +217,13 @@ const FolderDetails = () => {
                     <td className="p-2">{asset.serialNumber}</td>
                     <td className="p-2">
                       <button
-                        className="text-red-500 hover:text-red-700"
+                        className="text-blue-500 hover:text-blue-700"
+                        onClick={() => handleMoveClick(asset)} // Call move function on click
+                      >
+                        Move
+                      </button>
+                      <button
+                        className="text-red-500 hover:text-red-700 ml-2"
                         onClick={() => handleDeleteAsset(asset._id)} // Call delete function on click
                       >
                         Delete
@@ -232,6 +238,32 @@ const FolderDetails = () => {
           <p>Folder not found</p>
         )}
       </div>
+
+      {/* Move Asset Modal */}
+      <Modal show={moveModalOpen} onClose={() => setMoveModalOpen(false)}>
+        <Modal.Header>Move Asset</Modal.Header>
+        <Modal.Body>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Select Folder</label>
+            <select
+              value={targetFolderId}
+              onChange={(e) => setTargetFolderId(e.target.value)}
+              className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option value="">Select a folder</option>
+              {folders.map((folder) => (
+                <option key={folder._id} value={folder._id}>
+                  {folder.category}
+                </option>
+              ))}
+            </select>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={handleMoveFile}>Move</Button>
+          <Button onClick={() => setMoveModalOpen(false)}>Cancel</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
