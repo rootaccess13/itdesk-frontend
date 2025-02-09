@@ -56,15 +56,15 @@ const Assets = () => {
     }
   };
 
-  const handleDeleteAsset = async (assetId) => {
+  const handleDeleteFolder = async (folderId) => {
     try {
       const response = await fetch(
-        `https://itdesk-backend.vercel.app/api/assets/${assetId}`,
+        `https://itdesk-backend.vercel.app/api/assets/folder/${folderId}`, // Ensure the endpoint matches the backend route
         {
           method: "DELETE",
         }
       );
-
+  
       if (response.ok) {
         // Refresh the folder list after successful deletion
         const foldersResponse = await fetch(
@@ -74,11 +74,14 @@ const Assets = () => {
           const data = await foldersResponse.json();
           setFolders(data);
         }
+      } else {
+        console.error("Failed to delete folder:", response.statusText);
       }
     } catch (error) {
-      console.error("Error deleting asset:", error);
+      console.error("Error deleting folder:", error);
     }
   };
+  
   return (
     <div className="flex h-screen">
       <SidebarComponent />
@@ -98,8 +101,9 @@ const Assets = () => {
           <p>Loading...</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            {folders.map((folder) => (
-              <Link to={`/folder/${folder._id}`} key={folder._id}>
+          {folders.map((folder) => (
+            <div key={folder._id} className="relative">
+              <Link to={`/folder/${folder._id}`}>
                 <Card className="p-0 shadow-md rounded-lg gap-0 border border-gray-400 cursor-pointer border-b-4">
                   <div className="flex justify-between rounded-lg items-center bg-gray-100 p-2">
                     <h2 className="text-xl font-semibold">
@@ -114,39 +118,32 @@ const Assets = () => {
                     Created on:{" "}
                     {new Date(folder.dateCreated).toLocaleDateString()}
                   </p>
-                  <ul>
-                    {folder.assets.map((asset) => (
-                      <li
-                        key={asset._id}
-                        className="text-gray-800 mb-1 flex justify-between items-center"
-                      >
-                        {asset.assetName}
-                        <button
-                          onClick={() => handleDeleteAsset(asset._id)}
-                          className="text-red-600 hover:text-red-800"
-                          title="Delete asset"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
                 </Card>
               </Link>
-            ))}
+              
+              {/* Add Delete Button */}
+              <button
+                onClick={() => handleDeleteFolder(folder._id)} // Trigger the folder delete
+                className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+                title="Delete Folder"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            </div>
+          ))}
           </div>
         )}
 
