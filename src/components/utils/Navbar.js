@@ -14,7 +14,73 @@ const NavbarComponent = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch notifications logic (keep your existing useEffect and fetchNotifications function)
+  useEffect(() => {
+    if (!user || !user._id) return; // Skip fetching if userId is not available
+
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`https://itdesk-backend.vercel.app/api/notifications?userId=${user._id}`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Notifications:', data);
+
+          // Filter notifications for today's date
+          const today = new Date();
+          const filteredNotifications = data.filter(notification => {
+            const notificationDate = new Date(notification.createdAt);
+            return (
+              notificationDate.getFullYear() === today.getFullYear() &&
+              notificationDate.getMonth() === today.getMonth() &&
+              notificationDate.getDate() === today.getDate()
+            );
+          });
+
+          setNotifications(filteredNotifications);
+
+          // Calculate unread count
+          const unreadCount = filteredNotifications.filter(notification => !notification.viewedBy.includes(user._id)).length;
+          setUnreadCount(unreadCount);
+        } else {
+          console.error('Failed to fetch notifications:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch(`https://itdesk-backend.vercel.app/api/notifications?userId=${user._id}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Notifications:', data);
+
+        // Filter notifications for today's date
+        const today = new Date();
+        const filteredNotifications = data.filter(notification => {
+          const notificationDate = new Date(notification.createdAt);
+          return (
+            notificationDate.getFullYear() === today.getFullYear() &&
+            notificationDate.getMonth() === today.getMonth() &&
+            notificationDate.getDate() === today.getDate()
+          );
+        });
+
+        setNotifications(filteredNotifications);
+
+        // Calculate unread count
+        const unreadCount = filteredNotifications.filter(notification => !notification.viewedBy.includes(user._id)).length;
+        setUnreadCount(unreadCount);
+      } else {
+        console.error('Failed to fetch notifications:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
 
   const formatDate = (date) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' };
