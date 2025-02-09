@@ -147,6 +147,27 @@ const FolderDetails = () => {
     }
   };
 
+  // New delete handler for assets
+  const handleDeleteAsset = async (assetId) => {
+    try {
+      const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/${assetId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Update the folder state after deleting the asset
+        setFolder(prevFolder => ({
+          ...prevFolder,
+          assets: prevFolder.assets.filter(asset => asset._id !== assetId),
+        }));
+      } else {
+        console.error('Failed to delete asset:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting asset:', error);
+    }
+  };
+
   return (
     <div className="flex h-screen">
       <SidebarComponent />
@@ -156,218 +177,60 @@ const FolderDetails = () => {
           <button onClick={() => setModalOpen(true)} type="button" className="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Create</button>
         </div>
         {loading ? (
-  <p>Loading...</p>
-) : folder ? (
-  <div className="p-4 shadow-md border border-gray-200">
-    <div className="flex justify-between items-center mb-4">
-      <h2 className="text-xl font-semibold mb-2 text-blue-600">{folder.category}</h2>
-      <p className="flex items-center text-sm text-gray-600 mb-4">
-        Created on: {new Date(folder.dateCreated).toLocaleDateString()}
-      </p>
-    </div>
-    <table className="w-full border-collapse">
-      <thead>
-        <tr>
-          <th className="border-b-2 p-2 text-left">File Name</th>
-          <th className="border-b-2 p-2 text-left">Asset Type</th>
-          <th className="border-b-2 p-2 text-left">Manufacturer</th>
-          <th className="border-b-2 p-2 text-left">Model</th>
-          <th className="border-b-2 p-2 text-left">Serial Number</th>
-          <th className="border-b-2 p-2 text-left">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {folder.assets.map(asset => (
-          <tr key={asset._id}>
-            <td className="p-2">
-              <a
-                href={`${asset.assetPath}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 underline flex items-center gap-2"
-              >
-                {asset.assetName}
-                <FiDownload size={16} className="text-gray-600 hover:text-blue-700" />
-              </a>
-            </td>
-            <td className="p-2">{asset.assetType}</td>
-            <td className="p-2">{asset.manufacturer || 'N/A'}</td>
-            <td className="p-2">{asset.model || 'N/A'}</td>
-            <td className="p-2">{asset.serialNumber || 'N/A'}</td>
-            <td className="flex flex-row p-2 items-center gap-2">
-              <span onClick={() => handleMoveClick(asset)} className="text-gray-600 text-sm hover:underline hover:text-blue-600 cursor-pointer">Move |</span>
-              <span className="text-gray-600 text-sm hover:underline hover:text-blue-600 cursor-pointer">Rename |</span>
-              <span className="text-gray-600 text-sm hover:underline hover:text-blue-600 cursor-pointer">Delete</span>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-) : (
-  <p>No folder found</p>
-)}
-
-
-        {/* Modal for Uploading Files */}
-        <Modal show={modalOpen} onClose={() => setModalOpen(false)}>
-          <Modal.Header>Create Asset</Modal.Header>
-          <Modal.Body>
-            {uploading ? (
-              <p>Uploading files...</p> // Show uploading message
-            ) : (
-              <>
-                <input
-                  type="text"
-                  value={assetName}
-                  onChange={(e) => setAssetName(e.target.value)}
-                  placeholder="Asset Name"
-                  className="mb-4 w-full p-2 border border-gray-300 rounded"
-                />
-                <select
-                  value={assetType}
-                  onChange={(e) => setAssetType(e.target.value)}
-                  className="mb-4 w-full p-2 border border-gray-300 rounded"
-                >
-                  <option value="">Select Asset Type</option>
-                  <option value="Purchase">Purchase</option>
-                  <option value="Software">Software</option>
-                  <option value="Hardware">Hardware</option>
-                  <option value="Other">Other</option>
-                </select>
-
-                {assetType === 'Purchase' && (
-                  <>
-                    <input
-                      type="date"
-                      value={purchaseDate}
-                      onChange={(e) => setPurchaseDate(e.target.value)}
-                      placeholder="Purchase Date"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="number"
-                      value={cost}
-                      onChange={(e) => setCost(e.target.value)}
-                      placeholder="Cost"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={vendor}
-                      onChange={(e) => setVendor(e.target.value)}
-                      placeholder="Vendor/Supplier"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={invoiceNumber}
-                      onChange={(e) => setInvoiceNumber(e.target.value)}
-                      placeholder="Invoice Number"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={warranty}
-                      onChange={(e) => setWarranty(e.target.value)}
-                      placeholder="Warranty Information"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={purchaseOrderNumber}
-                      onChange={(e) => setPurchaseOrderNumber(e.target.value)}
-                      placeholder="Purchase Order Number"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Location"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                  </>
-                )}
-
-                {assetType === 'Hardware' && (
-                  <>
-                    <input
-                      type="text"
-                      value={hardwareSpecs}
-                      onChange={(e) => setHardwareSpecs(e.target.value)}
-                      placeholder="Hardware Specifications"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                  </>
-                )}
-
-                {assetType === 'Software' && (
-                  <>
-                    <input
-                      type="text"
-                      value={softwareVersion}
-                      onChange={(e) => setSoftwareVersion(e.target.value)}
-                      placeholder="Software Version"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                  </>
-                )}
-
-                <textarea
-                  value={assetDescription}
-                  onChange={(e) => setAssetDescription(e.target.value)}
-                  placeholder="Asset Description"
-                  rows="4"
-                  className="mb-4 w-full p-2 border border-gray-300 rounded"
-                />
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                  className="mb-4"
-                />
-              </>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            {!uploading && (
-              <Button onClick={handleFileUpload} color="success">
-                Upload
-              </Button>
-            )}
-            <Button onClick={() => setModalOpen(false)} color="gray">
-              Cancel
-            </Button>
-          </Modal.Footer>
-        </Modal>
-
-        {/* Modal for Moving Files */}
-        <Modal show={moveModalOpen} onClose={() => setMoveModalOpen(false)}>
-          <Modal.Header>Move File</Modal.Header>
-          <Modal.Body>
-            <select
-              value={targetFolderId}
-              onChange={(e) => setTargetFolderId(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-            >
-              <option value="" disabled>Select folder</option>
-              {folders.map((folder) => (
-                <option key={folder._id} value={folder._id}>
-                  {folder.category}
-                </option>
-              ))}
-            </select>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={handleMoveFile} color="success">
-              Move
-            </Button>
-            <Button onClick={() => setMoveModalOpen(false)} color="gray">
-              Cancel
-            </Button>
-          </Modal.Footer>
-        </Modal>
+          <p>Loading...</p>
+        ) : folder ? (
+          <div className="p-4 shadow-md border border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold mb-2 text-blue-600">{folder.category}</h2>
+              <p className="flex items-center text-sm text-gray-600 mb-4">
+                Created on: {new Date(folder.dateCreated).toLocaleDateString()}
+              </p>
+            </div>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border-b-2 p-2 text-left">File Name</th>
+                  <th className="border-b-2 p-2 text-left">Asset Type</th>
+                  <th className="border-b-2 p-2 text-left">Manufacturer</th>
+                  <th className="border-b-2 p-2 text-left">Model</th>
+                  <th className="border-b-2 p-2 text-left">Serial Number</th>
+                  <th className="border-b-2 p-2 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {folder.assets.map(asset => (
+                  <tr key={asset._id}>
+                    <td className="p-2">
+                      <a
+                        href={`${asset.assetPath}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 underline flex items-center gap-2"
+                      >
+                        {asset.assetName}
+                        <FiDownload size={16} className="text-gray-500" />
+                      </a>
+                    </td>
+                    <td className="p-2">{asset.assetType}</td>
+                    <td className="p-2">{asset.manufacturer}</td>
+                    <td className="p-2">{asset.model}</td>
+                    <td className="p-2">{asset.serialNumber}</td>
+                    <td className="p-2">
+                      <button
+                        className="text-red-500 hover:text-red-700"
+                        onClick={() => handleDeleteAsset(asset._id)} // Call delete function on click
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p>Folder not found</p>
+        )}
       </div>
     </div>
   );
