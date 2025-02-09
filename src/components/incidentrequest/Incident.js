@@ -236,7 +236,7 @@ const Incident = () => {
 
                         <div className="w-full mb-4">
                             <ReCAPTCHA
-                                sitekey="6Ldyhv8pAAAAAEqcGx0wt7xI_8FhcQOoG0246Rui" // Replace with your reCAPTCHA site key
+                                sitekey="6LeYuNEqAAAAAIEOylhCIH-fLBRUL4y5lOIchYl-" // Replace with your reCAPTCHA site key
                                 onChange={handleCaptchaChange}
                                 className='max-w-md w-full mb-4'
                             />
