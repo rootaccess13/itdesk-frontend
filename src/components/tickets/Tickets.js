@@ -188,6 +188,13 @@ const Tickets = () => {
     }
   };
 
+  const handleTicketUpdate = (updatedTicket) => {
+    setTickets((prevTickets) =>
+      prevTickets.map((t) => (t._id === updatedTicket._id ? updatedTicket : t))
+    );
+    setToast({ show: true, message: 'Ticket resolved successfully!', type: 'success' });
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <SidebarComponent />
@@ -387,6 +394,13 @@ const Tickets = () => {
           </form>
         </Modal>
 
+        <TicketModal
+          show={showModal}
+          onClose={resetForm}
+          title={_id ? 'Edit Ticket' : 'Ticket Details'}
+          tickets={_id ? [formData] : tickets} // Pass selected ticket or all tickets
+          onTicketUpdate={handleTicketUpdate} // Pass the callback
+        />
         <TakeActionModal
           show={showTakeActionModal}
           onClose={() => setShowTakeActionModal(false)}
