@@ -366,9 +366,9 @@ const Tickets = () => {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Team</option>
-                  <option value="Software Team">IT</option>
-                  <option value="Network Team">HR</option>
-                  <option value="Hardware Team">Finance</option>
+                  <option value="Software Team">Software Team</option>
+                  <option value="Network Team">Network Team</option>
+                  <option value="Hardware Team">Hardware Team</option>
                 </select>
               </div>
               <div className="md:col-span-2">
