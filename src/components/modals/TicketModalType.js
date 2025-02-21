@@ -7,7 +7,7 @@ import {
   HiOutlineXCircle,
   HiOutlineUser,
   HiOutlinePaperClip,
-  HiDocumentText, // Replaced HiOutlineDescription with HiDocumentText
+  HiDocumentText,
   HiOutlineCalendar
 } from 'react-icons/hi';
 
@@ -54,17 +54,35 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
         </Modal.Header>
         <Modal.Body className="p-6">
           <div className="overflow-x-auto">
-            <Table hoverable>
+            <Table hoverable className="min-w-full">
               <Table.Head>
-                <Table.HeadCell>Ticket #</Table.HeadCell>
-                <Table.HeadCell>Title</Table.HeadCell>
-                <Table.HeadCell>Description</Table.HeadCell>
-                <Table.HeadCell>Status</Table.HeadCell>
-                <Table.HeadCell>Priority</Table.HeadCell>
-                <Table.HeadCell>Type</Table.HeadCell>
-                <Table.HeadCell>Assigned To</Table.HeadCell>
-                <Table.HeadCell>Created</Table.HeadCell>
-                <Table.HeadCell>Attachments</Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Ticket #
+                </Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Title
+                </Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Description
+                </Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Status
+                </Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Priority
+                </Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Type
+                </Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Assigned To
+                </Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Created
+                </Table.HeadCell>
+                <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
+                  Attachments
+                </Table.HeadCell>
               </Table.Head>
               <Table.Body className="divide-y">
                 {tickets && tickets.length > 0 ? (
@@ -72,31 +90,31 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
                     const { icon: StatusIcon, color } = getStatusInfo(ticket.status);
                     return (
                       <Table.Row key={ticket._id} className="bg-white hover:bg-gray-50">
-                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900 flex items-center gap-2">
-                          <HiOutlineTicket className="text-blue-500" />
+                        <Table.Cell className="py-3 px-4 whitespace-nowrap font-medium text-gray-900 flex items-center gap-2">
+                          <HiOutlineTicket className="text-blue-500 w-5 h-5" />
                           {ticket.ticketNumber}
                         </Table.Cell>
-                        <Table.Cell>{ticket.title}</Table.Cell>
-                        <Table.Cell className="flex items-center gap-2">
-                          <HiDocumentText className="text-gray-500" />
+                        <Table.Cell className="py-3 px-4">{ticket.title}</Table.Cell>
+                        <Table.Cell className="py-3 px-4 flex items-center gap-2">
+                          <HiDocumentText className="text-gray-500 w-5 h-5" />
                           {ticket.description}
                         </Table.Cell>
-                        <Table.Cell className="flex items-center gap-2">
-                          <StatusIcon className={`p-1 rounded-full ${color}`} />
+                        <Table.Cell className="py-3 px-4 flex items-center gap-2">
+                          <StatusIcon className={`w-5 h-5 p-1 rounded-full ${color}`} />
                           <span>{ticket.status}</span>
                         </Table.Cell>
-                        <Table.Cell>{ticket.priority}</Table.Cell>
-                        <Table.Cell>{ticket.type}</Table.Cell>
-                        <Table.Cell className="flex items-center gap-2">
-                          <HiOutlineUser className="text-gray-500" />
+                        <Table.Cell className="py-3 px-4">{ticket.priority}</Table.Cell>
+                        <Table.Cell className="py-3 px-4">{ticket.type}</Table.Cell>
+                        <Table.Cell className="py-3 px-4 flex items-center gap-2">
+                          <HiOutlineUser className="text-gray-500 w-5 h-5" />
                           {ticket.assignedTo?.username || 'Unassigned'}
                         </Table.Cell>
-                        <Table.Cell className="flex items-center gap-2">
-                          <HiOutlineCalendar className="text-gray-500" />
+                        <Table.Cell className="py-3 px-4 flex items-center gap-2">
+                          <HiOutlineCalendar className="text-gray-500 w-5 h-5" />
                           {formatDate(ticket.createdAt)}
                         </Table.Cell>
-                        <Table.Cell className="flex items-center gap-2">
-                          <HiOutlinePaperClip className="text-gray-500" />
+                        <Table.Cell className="py-3 px-4 flex items-center gap-2">
+                          <HiOutlinePaperClip className="text-gray-500 w-5 h-5" />
                           {ticket.attachments && ticket.attachments.length > 0 ? (
                             <div className="space-y-1">
                               {ticket.attachments.map((attachment, index) => (
@@ -112,7 +130,7 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
                                     <a 
                                       href={attachment.url} 
                                       download={attachment.filename}
-                                      className="text-blue-500 hover:underline"
+                                      className="text-blue-500 hover:underline text-sm"
                                     >
                                       {attachment.filename}
                                     </a>
@@ -129,7 +147,7 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
                   })
                 ) : (
                   <Table.Row>
-                    <Table.Cell colSpan={9} className="text-center text-gray-500 py-4">
+                    <Table.Cell colSpan={9} className="py-4 text-center text-gray-500">
                       No tickets found.
                     </Table.Cell>
                   </Table.Row>
@@ -138,23 +156,23 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
             </Table>
           </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={onClose} color="gray">
+        <Modal.Footer className="p-4 bg-gray-50">
+          <Button onClick={onClose} color="gray" className="rounded">
             Close
           </Button>
         </Modal.Footer>
       </Modal>
 
       {selectedImage && (
-        <Modal size="4xl" show={selectedImage !== null} onClose={handleImageClose}>
+        <Modal size="4xl" show={selectedImage !== null} onClose={handleImageClose} popup>
           <Modal.Header>
             <h3 className="text-xl font-semibold text-gray-900">Attachment Preview</h3>
           </Modal.Header>
           <Modal.Body className="p-6 flex justify-center">
             <img src={selectedImage} alt="Selected attachment" className="max-w-full max-h-[80vh] rounded-lg object-contain" />
           </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={handleImageClose} color="gray">
+          <Modal.Footer className="p-4 bg-gray-50">
+            <Button onClick={handleImageClose} color="gray" className="rounded">
               Close
             </Button>
           </Modal.Footer>
