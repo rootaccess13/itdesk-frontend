@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
-import TicketModal from '../modals/TicketModal'; // Correct import
+import Modal from '../modals/ticketModal'; // Correct import
 import TakeActionModal from '../utils/TakeActionModal';
 import SidebarComponent from '../utils/SidebarComponent';
 import { Spinner, Dropdown, Button, Toast } from 'flowbite-react';
