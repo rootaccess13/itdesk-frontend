@@ -226,7 +226,7 @@ const NavbarComponent = () => {
         <Modal.Body>
           {selectedNotification?.banner ? (
             <img
-              src={`https://itdesk-backend.vercel.app/${selectedNotification.banner}`}
+              src={`${selectedNotification.banner}`}
               alt={selectedNotification.title}
               className="w-full h-48 object-cover mb-2 rounded-md"
             />
