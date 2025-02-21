@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Modal, Button, Spinner, Card, Label, TextInput, Textarea, Select } from "flowbite-react";
-import { FiDownload, FaTrash } from "react-icons/fi"; // Added FaTrash for delete
+import { FiDownload } from "react-icons/fi"; // Added FaTrash for delete
+import { FaTrash } from "react-icons/fa";
+
 import SidebarComponent from "../utils/SidebarComponent";
 
 const FolderDetails = () => {
