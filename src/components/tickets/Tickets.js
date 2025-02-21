@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
-import Modal from '../modals/ticketModal';
+import TicketModal from '../modals/TicketModal'; // Correct import
 import TakeActionModal from '../utils/TakeActionModal';
 import SidebarComponent from '../utils/SidebarComponent';
 import { Spinner, Dropdown, Button, Toast } from 'flowbite-react';
@@ -49,12 +49,11 @@ const Tickets = () => {
         params: { page, limit: 6, status: filterStatus },
         headers: { Authorization: localStorage.getItem('token') },
       });
-      setTickets(res.data.tickets || []); // Fallback to empty array if undefined
-      setTotalPages(res.data.totalPages || 1);
+      setTickets(res.data.tickets);
+      setTotalPages(res.data.totalPages);
     } catch (err) {
       console.error(err);
       setToast({ show: true, message: 'Failed to fetch tickets', type: 'error' });
-      setTickets([]); // Reset to empty array on error
     } finally {
       setLoading(false);
     }
@@ -131,7 +130,6 @@ const Tickets = () => {
   };
 
   const handleEdit = (ticket) => {
-    if (!ticket || !ticket._id) return; // Guard against undefined ticket
     setFormData({
       ...ticket,
       dueDate: ticket.dueDate ? new Date(ticket.dueDate).toISOString().substring(0, 10) : '',
@@ -180,7 +178,6 @@ const Tickets = () => {
   };
 
   const handleTicketUpdate = (updatedTicket) => {
-    if (!updatedTicket || !updatedTicket._id) return; // Guard against undefined ticket
     setTickets((prevTickets) =>
       prevTickets.map((t) => (t._id === updatedTicket._id ? updatedTicket : t))
     );
@@ -300,6 +297,101 @@ const Tickets = () => {
           </div>
         )}
 
+        <Modal show={showModal} onClose={resetForm}>
+          <form onSubmit={handleSubmit} className="p-6">
+            <h2 className="text-xl font-semibold mb-4">
+              {_id ? 'Edit Ticket' : 'Create New Ticket'}
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block mb-1 text-sm font-medium">Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={title}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium">Status</label>
+                <select
+                  name="status"
+                  value={status}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="Open">Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Resolved">Resolved</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block mb-1 text-sm font-medium">Description</label>
+                <textarea
+                  name="description"
+                  value={description}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  rows="3"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium">Priority</label>
+                <select
+                  name="priority"
+                  value={priority}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium">Due Date</label>
+                <input
+                  type="date"
+                  name="dueDate"
+                  value={dueDate}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium">Team</label>
+                <select
+                  name="escalationLevel"
+                  value={escalationLevel}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select Team</option>
+                  <option value="Software Team">Software Team</option>
+                  <option value="Network Team">Network Team</option>
+                  <option value="Hardware Team">Hardware Team</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block mb-1 text-sm font-medium">Attachments</label>
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+            </div>
+            <Button type="submit" color="blue" className="w-full mt-6">
+              {_id ? 'Update Ticket' : 'Create Ticket'}
+            </Button>
+          </form>
+        </Modal>
         <TakeActionModal
           show={showTakeActionModal}
           onClose={() => setShowTakeActionModal(false)}
