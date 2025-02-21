@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { Modal, Button, Badge } from 'flowbite-react';
-import { 
-  HiOutlineTicket, 
-  HiOutlineClock, 
-  HiOutlineCheckCircle, 
+import {
+  HiOutlineTicket,
+  HiOutlineClock,
+  HiOutlineCheckCircle,
   HiOutlineXCircle,
   HiOutlineUser,
   HiOutlinePaperClip,
   HiDocumentText,
-  HiOutlineCalendar
+  HiOutlineCalendar,
 } from 'react-icons/hi';
 
-const TicketModal = ({ show, onClose, title, tickets }) => {
+const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState({}); // Object to track loading state per ticket
 
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -27,7 +28,6 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
     return new Date(date).toLocaleString(undefined, options);
   };
 
-  // Helper function to get status icon and color
   const getStatusInfo = (status) => {
     switch (status) {
       case 'Open':
@@ -43,26 +43,54 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
     }
   };
 
+  const handleResolveTicket = async (ticketId) => {
+    setLoading((prev) => ({ ...prev, [ticketId]: true }));
+    try {
+      const response = await fetch(`https://itdesk-backend.vercel.app/api/tickets/${ticketId}/update/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('token'), // Token from AuthContext used in Tickets.js
+        },
+        body: JSON.stringify({ status: 'Resolved' }),
+      });
+
+      if (response.ok) {
+        const updatedTicket = await response.json();
+        if (onTicketUpdate) {
+          onTicketUpdate(updatedTicket); // Notify parent component
+        }
+      } else {
+        console.error('Failed to resolve ticket:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error resolving ticket:', error);
+    } finally {
+      setLoading((prev) => ({ ...prev, [ticketId]: false }));
+    }
+  };
+
   return (
     <>
-      <Modal show={show} onClose={onClose} size="3xl" popup> {/* Reduced size to "3xl" for less vertical space */}
+      <Modal show={show} onClose={onClose} size="3xl" popup>
         <Modal.Header className="p-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <HiOutlineTicket className="text-blue-500 w-5 h-5" />
             <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
           </div>
         </Modal.Header>
-        <Modal.Body className="p-4">
+        <Modal.Body className="p-4 max-h-[70vh] overflow-y-auto">
           <div className="space-y-4">
             {tickets && tickets.length > 0 ? (
               tickets.map((ticket) => {
                 const { icon: StatusIcon, color } = getStatusInfo(ticket.status);
+                const isLoading = loading[ticket._id] || false;
                 return (
                   <div
                     key={ticket._id}
                     className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
                   >
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left Column */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -112,12 +140,12 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
                                     <img
                                       src={attachment.url}
                                       alt={attachment.filename}
-                                      className="w-12 h-12 rounded-lg cursor-pointer object-cover"
+                                      className="w-12 h-12 rounded-lg cursor-pointer object-cover hover:opacity-80 transition"
                                       onClick={() => handleImageClick(attachment.url)}
                                     />
                                   ) : (
-                                    <a 
-                                      href={attachment.url} 
+                                    <a
+                                      href={attachment.url}
                                       download={attachment.filename}
                                       className="text-blue-500 hover:underline text-sm truncate max-w-[150px]"
                                     >
@@ -131,15 +159,28 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
                             <span className="text-sm text-gray-600">None</span>
                           )}
                         </div>
+                        {/* Resolve Button for In Progress Tickets */}
+                        {ticket.status === 'In Progress' && (
+                          <div className="mt-2">
+                            <Button
+                              onClick={() => handleResolveTicket(ticket._id)}
+                              disabled={isLoading}
+                              color="success"
+                              size="sm"
+                              className="rounded flex items-center gap-2"
+                            >
+                              <HiOutlineCheckCircle className="w-4 h-4" />
+                              {isLoading ? 'Resolving...' : 'Resolve'}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 );
               })
             ) : (
-              <div className="text-center text-gray-500 py-4">
-                No tickets found.
-              </div>
+              <div className="text-center text-gray-500 py-4">No tickets found.</div>
             )}
           </div>
         </Modal.Body>
@@ -150,13 +191,18 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
         </Modal.Footer>
       </Modal>
 
+      {/* Image Preview Modal */}
       {selectedImage && (
         <Modal size="4xl" show={selectedImage !== null} onClose={handleImageClose} popup>
           <Modal.Header className="p-4 border-b border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900">Attachment Preview</h3>
           </Modal.Header>
           <Modal.Body className="p-6 flex justify-center">
-            <img src={selectedImage} alt="Selected attachment" className="max-w-full max-h-[80vh] rounded-lg object-contain" />
+            <img
+              src={selectedImage}
+              alt="Selected attachment"
+              className="max-w-full max-h-[80vh] rounded-lg object-contain"
+            />
           </Modal.Body>
           <Modal.Footer className="p-4 bg-gray-50 border-t border-gray-200">
             <Button onClick={handleImageClose} color="gray" className="rounded">
