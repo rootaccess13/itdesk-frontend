@@ -23,7 +23,7 @@ const FolderDetails = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false); // For deletion confirmation
+  const [deleteModalOpen, setDeleteModalOpen] = useState(null); // For deletion confirmation, store asset ID
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [targetFolderId, setTargetFolderId] = useState('');
@@ -177,7 +177,7 @@ const FolderDetails = () => {
   };
 
   const handleDeleteAsset = async (assetId) => {
-    setDeleteModalOpen(false); // Close confirmation modal after deletion
+    setDeleteModalOpen(null); // Close confirmation modal after deletion
     try {
       const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/${assetId}`, {
         method: 'DELETE',
@@ -261,14 +261,16 @@ const FolderDetails = () => {
           </div>
         ) : folder ? (
           <div className="space-y-6">
-            <div className="flex justify-between items-center mb-4 p-4 bg-white rounded-lg shadow-md border border-gray-200">
-              <div className="flex items-center gap-2">
-                <HiOutlineFolder className="text-blue-500 w-6 h-6" />
-                <h2 className="text-xl font-semibold text-blue-600">{folder.category}</h2>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <HiOutlineCalendar className="text-gray-500 w-5 h-5" />
-                <span>Created on: {new Date(folder.dateCreated).toLocaleDateString()}</span>
+            <div className="p-4 bg-white rounded-lg shadow-md border border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <HiOutlineFolder className="text-blue-500 w-6 h-6" />
+                  <h2 className="text-xl font-semibold text-blue-600">{folder.category}</h2>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <HiOutlineCalendar className="text-gray-500 w-5 h-5" />
+                  <span>Created on: {new Date(folder.dateCreated).toLocaleDateString()}</span>
+                </div>
               </div>
             </div>
 
@@ -307,17 +309,11 @@ const FolderDetails = () => {
                         <HiOutlineDownload className="w-5 h-5 text-gray-700" />
                       </Button>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span>Type: {asset.assetType}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span>Vendor: {asset.vendor || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span>Model: {asset.model || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span>Serial Number: {asset.serialNumber || 'N/A'}</span>
+                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                      <div><span>Type: {asset.assetType || 'N/A'}</span></div>
+                      <div><span>Vendor: {asset.vendor || 'N/A'}</span></div>
+                      <div><span>Model: {asset.model || 'N/A'}</span></div>
+                      <div><span>Serial Number: {asset.serialNumber || 'N/A'}</span></div>
                     </div>
                     <div className="flex justify-between mt-2">
                       <Button
@@ -510,20 +506,20 @@ const FolderDetails = () => {
             </Modal>
 
             {/* Delete Confirmation Modal */}
-            <Modal show={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} size="sm">
+            <Modal show={deleteModalOpen !== null} onClose={() => setDeleteModalOpen(null)} size="sm">
               <Modal.Header className="p-4 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
               </Modal.Header>
               <Modal.Body className="p-4 text-center">
                 <p className="text-sm text-gray-700">
-                  Are you sure you want to delete this asset? This action cannot be undone.
+                  Are you sure you want to delete the asset "{folder?.assets.find(asset => asset._id === deleteModalOpen)?.assetName}"? This action cannot be undone.
                 </p>
               </Modal.Body>
               <Modal.Footer className="p-4 bg-gray-50 border-t border-gray-200">
                 <Button onClick={() => handleDeleteAsset(deleteModalOpen)} color="failure">
                   Delete
                 </Button>
-                <Button onClick={() => setDeleteModalOpen(false)} color="gray" className="ml-2">
+                <Button onClick={() => setDeleteModalOpen(null)} color="gray" className="ml-2">
                   Cancel
                 </Button>
               </Modal.Footer>
