@@ -17,7 +17,7 @@ import {
   HiEye,
   HiDownload,
 } from "react-icons/hi";
-import { jsPDF } from "jspdf"; // Ensure correct import
+import jsPDF from "jspdf"; // Ensure correct import
 
 // Log jsPDF to verify import
 console.log("jsPDF imported:", jsPDF);
