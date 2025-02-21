@@ -14,12 +14,17 @@ import {
   HiOutlineExclamationCircle,
   HiOutlineCheckCircle,
   HiOutlineChartBar,
+  HiEye,
+  HiDownload,
 } from "react-icons/hi";
+import { jsPDF } from "jspdf"; // Import jsPDF for PDF generation
 
 const Tickets = () => {
   const [tickets, setTickets] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showTakeActionModal, setShowTakeActionModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false); // New state for view modal
+  const [selectedTicket, setSelectedTicket] = useState(null); // State for selected ticket to view
   const [loading, setLoading] = useState(true);
   const [attachments, setAttachments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,7 +130,7 @@ const Tickets = () => {
       );
       resetForm();
       setToast({ show: true, message: `Ticket ${_id ? "updated" : "created"} successfully!`, type: "success" });
-      fetchAnalytics(); // Refresh analytics after ticket creation/update
+      fetchAnalytics();
     } catch (err) {
       setToast({ show: true, message: err.response?.data?.msg || "An error occurred", type: "error" });
     }
@@ -159,6 +164,11 @@ const Tickets = () => {
     setShowModal(true);
   };
 
+  const handleView = (ticket) => {
+    setSelectedTicket(ticket);
+    setShowViewModal(true);
+  };
+
   const handleTakeAction = (ticketId) => {
     setSelectedTicketId(ticketId);
     setShowTakeActionModal(true);
@@ -174,7 +184,7 @@ const Tickets = () => {
       setTickets(tickets.map((t) => (t._id === selectedTicketId ? res.data : t)));
       setShowTakeActionModal(false);
       setToast({ show: true, message: "Ticket assigned successfully!", type: "success" });
-      fetchAnalytics(); // Refresh analytics after assignment
+      fetchAnalytics();
     } catch (err) {
       setToast({ show: true, message: err.response?.data?.msg || "Assignment failed", type: "error" });
     }
@@ -198,12 +208,31 @@ const Tickets = () => {
     }
   };
 
-  const handleTicketUpdate = (updatedTicket) => {
-    setTickets((prevTickets) =>
-      prevTickets.map((t) => (t._id === updatedTicket._id ? updatedTicket : t))
-    );
-    setToast({ show: true, message: "Ticket resolved successfully!", type: "success" });
-    fetchAnalytics(); // Refresh analytics after update
+  const handleDownloadPDF = () => {
+    if (!selectedTicket) return;
+
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Ticket Details", 20, 20);
+    doc.setFontSize(12);
+    doc.text(`Ticket Number: ${selectedTicket.ticketNumber}`, 20, 30);
+    doc.text(`Title: ${selectedTicket.title}`, 20, 40);
+    doc.text(`Description: ${selectedTicket.description}`, 20, 50, { maxWidth: 160 });
+    doc.text(`Status: ${selectedTicket.status}`, 20, 70);
+    doc.text(`Priority: ${selectedTicket.priority}`, 20, 80);
+    doc.text(`Assigned To: ${selectedTicket.assignedTo?.username || "Unassigned"}`, 20, 90);
+    doc.text(`Due Date: ${selectedTicket.dueDate ? new Date(selectedTicket.dueDate).toLocaleDateString() : "N/A"}`, 20, 100);
+    doc.text(`Escalation Level: ${selectedTicket.escalationLevel || "N/A"}`, 20, 110);
+    doc.text(`Attachments: ${selectedTicket.attachments.length}`, 20, 120);
+
+    if (selectedTicket.attachments.length > 0) {
+      doc.text("Attachment URLs:", 20, 130);
+      selectedTicket.attachments.forEach((attachment, index) => {
+        doc.text(`${index + 1}. ${attachment.url}`, 20, 140 + index * 10, { maxWidth: 160 });
+      });
+    }
+
+    doc.save(`ticket_${selectedTicket.ticketNumber}.pdf`);
   };
 
   const getStatusColor = (status) => {
@@ -334,6 +363,13 @@ const Tickets = () => {
                           </Button>
                         )
                       )}
+                      <Button
+                        size="sm"
+                        onClick={() => handleView(ticket)}
+                        gradientDuoTone="purpleToBlue"
+                      >
+                        <HiEye className="mr-1" /> View
+                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -369,7 +405,6 @@ const Tickets = () => {
             </h2>
             {analytics ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {/* Status Distribution */}
                 <Card className="shadow-md">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Status Distribution</h3>
                   <div className="space-y-2">
@@ -383,8 +418,6 @@ const Tickets = () => {
                     ))}
                   </div>
                 </Card>
-
-                {/* Priority Breakdown */}
                 <Card className="shadow-md">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Priority Breakdown</h3>
                   <div className="space-y-2">
@@ -398,8 +431,6 @@ const Tickets = () => {
                     ))}
                   </div>
                 </Card>
-
-                {/* Most Common Problems */}
                 <Card className="shadow-md">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Most Common Problems</h3>
                   <ul className="list-disc list-inside text-sm text-gray-600">
@@ -410,8 +441,6 @@ const Tickets = () => {
                     ))}
                   </ul>
                 </Card>
-
-                {/* Additional Metrics */}
                 <Card className="shadow-md">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Key Metrics</h3>
                   <div className="space-y-2 text-sm text-gray-600">
@@ -427,126 +456,178 @@ const Tickets = () => {
               </div>
             )}
           </div>
+
+          {/* Create/Edit Ticket Modal */}
+          <Modal show={showModal} onClose={resetForm}>
+            <form onSubmit={handleSubmit} className="p-6">
+              <h2 className="text-xl font-semibold mb-4">
+                {_id ? "Edit Ticket" : "Create New Ticket"}
+              </h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={title}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Status</label>
+                  <select
+                    name="status"
+                    value={status}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block mb-1 text-sm font-medium">Description</label>
+                  <textarea
+                    name="description"
+                    value={description}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                    rows="3"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Priority</label>
+                  <select
+                    name="priority"
+                    value={priority}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Due Date</label>
+                  <input
+                    type="date"
+                    name="dueDate"
+                    value={dueDate}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Team</label>
+                  <select
+                    name="escalationLevel"
+                    value={escalationLevel}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Team</option>
+                    <option value="Software Team">Software Team</option>
+                    <option value="Network Team">Network Team</option>
+                    <option value="Hardware Team">Hardware Team</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block mb-1 text-sm font-medium">Attachments</label>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              </div>
+              <Button
+                type="submit"
+                gradientDuoTone="greenToBlue"
+                className="w-full mt-6 font-medium"
+              >
+                {_id ? "Update Ticket" : "Create Ticket"}
+              </Button>
+            </form>
+          </Modal>
+
+          {/* View Ticket Modal */}
+          <Modal show={showViewModal} onClose={() => setShowViewModal(false)} size="lg">
+            <Modal.Header className="bg-gradient-to-r from-purple-500 to-blue-600">
+              <span className="text-white">Ticket Details</span>
+            </Modal.Header>
+            <Modal.Body className="space-y-4">
+              {selectedTicket && (
+                <div className="text-gray-700">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">{selectedTicket.title}</h3>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <p><strong>Ticket Number:</strong> {selectedTicket.ticketNumber}</p>
+                    <p><strong>Status:</strong> <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(selectedTicket.status)}`}>{selectedTicket.status}</span></p>
+                    <p><strong>Priority:</strong> <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(selectedTicket.priority)}`}>{selectedTicket.priority}</span></p>
+                    <p><strong>Assigned To:</strong> {selectedTicket.assignedTo?.username || "Unassigned"}</p>
+                    <p><strong>Due Date:</strong> {selectedTicket.dueDate ? new Date(selectedTicket.dueDate).toLocaleDateString() : "N/A"}</p>
+                    <p><strong>Escalation Level:</strong> {selectedTicket.escalationLevel || "N/A"}</p>
+                    <p className="md:col-span-2"><strong>Description:</strong> {selectedTicket.description}</p>
+                    <div className="md:col-span-2">
+                      <strong>Attachments:</strong>
+                      {selectedTicket.attachments.length > 0 ? (
+                        <ul className="list-disc list-inside mt-1">
+                          {selectedTicket.attachments.map((attachment, index) => (
+                            <li key={index}>
+                              <a
+                                href={attachment.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                              >
+                                {attachment.filename}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-gray-500">No attachments</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button onClick={handleDownloadPDF} gradientDuoTone="pinkToOrange">
+                <HiDownload className="mr-2" /> Download PDF
+              </Button>
+              <Button onClick={() => setShowViewModal(false)} color="gray">
+                Close
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          <TakeActionModal
+            show={showTakeActionModal}
+            onClose={() => setShowTakeActionModal(false)}
+            onTakeAction={handleTakeTicket}
+          />
+
+          {toast.show && (
+            <Toast className="fixed top-4 right-4">
+              {toast.type === "success" ? (
+                <HiOutlineCheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <HiOutlineExclamationCircle className="h-5 w-5 text-red-500" />
+              )}
+              <div className="ml-3 text-sm">{toast.message}</div>
+              <Toast.Toggle onClick={() => setToast({ ...toast, show: false })} />
+            </Toast>
+          )}
         </div>
-
-        {/* Modal for Creating/Editing Tickets */}
-        <Modal show={showModal} onClose={resetForm}>
-          <form onSubmit={handleSubmit} className="p-6">
-            <h2 className="text-xl font-semibold mb-4">
-              {_id ? "Edit Ticket" : "Create New Ticket"}
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="block mb-1 text-sm font-medium">Title</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={title}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block mb-1 text-sm font-medium">Status</label>
-                <select
-                  name="status"
-                  value={status}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="Open">Open</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Resolved">Resolved</option>
-                  <option value="Closed">Closed</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block mb-1 text-sm font-medium">Description</label>
-                <textarea
-                  name="description"
-                  value={description}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-                  rows="3"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block mb-1 text-sm font-medium">Priority</label>
-                <select
-                  name="priority"
-                  value={priority}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
-              </div>
-              <div>
-                <label className="block mb-1 text-sm font-medium">Due Date</label>
-                <input
-                  type="date"
-                  name="dueDate"
-                  value={dueDate}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block mb-1 text-sm font-medium">Team</label>
-                <select
-                  name="escalationLevel"
-                  value={escalationLevel}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select Team</option>
-                  <option value="Software Team">Software Team</option>
-                  <option value="Network Team">Network Team</option>
-                  <option value="Hardware Team">Hardware Team</option>
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block mb-1 text-sm font-medium">Attachments</label>
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-            </div>
-            <Button
-              type="submit"
-              gradientDuoTone="greenToBlue"
-              className="w-full mt-6 font-medium"
-            >
-              {_id ? "Update Ticket" : "Create Ticket"}
-            </Button>
-          </form>
-        </Modal>
-
-        <TakeActionModal
-          show={showTakeActionModal}
-          onClose={() => setShowTakeActionModal(false)}
-          onTakeAction={handleTakeTicket}
-        />
-
-        {toast.show && (
-          <Toast className="fixed top-4 right-4">
-            {toast.type === "success" ? (
-              <HiOutlineCheckCircle className="h-5 w-5 text-green-500" />
-            ) : (
-              <HiOutlineExclamationCircle className="h-5 w-5 text-red-500" />
-            )}
-            <div className="ml-3 text-sm">{toast.message}</div>
-            <Toast.Toggle onClick={() => setToast({ ...toast, show: false })} />
-          </Toast>
-        )}
       </div>
     </div>
   );
