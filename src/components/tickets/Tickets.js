@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import axios from "axios";
-import { Modal as FlowbiteModal, Spinner, Dropdown, Button, Toast, Card } from "flowbite-react"; // Use Flowbite's Modal directly
+import { Modal as FlowbiteModal, Spinner, Dropdown, Button, Toast, Card } from "flowbite-react";
 import TakeActionModal from "../utils/TakeActionModal";
 import SidebarComponent from "../utils/SidebarComponent";
 import AuthContext from "../../context/AuthContext";
@@ -216,27 +216,102 @@ const Tickets = () => {
       setToast({ show: true, message: "Unable to generate PDF", type: "error" });
       return;
     }
-    const doc = new jsPDF();
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    // Header
+    doc.setFillColor(63, 81, 181); // Indigo color
+    doc.rect(0, 0, 210, 20, "F"); // Header rectangle (full width, 20mm height)
     doc.setFontSize(18);
-    doc.text("Ticket Details", 20, 20);
+    doc.setTextColor(255, 255, 255); // White text
+    doc.setFont("helvetica", "bold");
+    doc.text("Ticket Details", 10, 14);
+
+    // Subheader with Ticket Number
     doc.setFontSize(12);
-    doc.text(`Ticket Number: ${selectedTicket.ticketNumber}`, 20, 30);
-    doc.text(`Title: ${selectedTicket.title}`, 20, 40);
-    doc.text(`Description: ${selectedTicket.description}`, 20, 50, { maxWidth: 160 });
-    doc.text(`Status: ${selectedTicket.status}`, 20, 70);
-    doc.text(`Priority: ${selectedTicket.priority}`, 20, 80);
-    doc.text(`Assigned To: ${selectedTicket.assignedTo?.username || "Unassigned"}`, 20, 90);
-    doc.text(`Due Date: ${selectedTicket.dueDate ? new Date(selectedTicket.dueDate).toLocaleDateString() : "N/A"}`, 20, 100);
-    doc.text(`Escalation Level: ${selectedTicket.escalationLevel || "N/A"}`, 20, 110);
-    doc.text(`Attachments: ${selectedTicket.attachments.length}`, 20, 120);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Ticket #${selectedTicket.ticketNumber}`, 150, 14);
+
+    // Content Section
+    let yOffset = 30; // Starting position below header
+    doc.setTextColor(33, 33, 33); // Dark gray for content
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+
+    // Title
+    doc.text("Title:", 10, yOffset);
+    doc.setFont("helvetica", "normal");
+    doc.text(selectedTicket.title, 30, yOffset);
+    yOffset += 10;
+
+    // Description (with wrapping)
+    doc.setFont("helvetica", "bold");
+    doc.text("Description:", 10, yOffset);
+    doc.setFont("helvetica", "normal");
+    const descriptionLines = doc.splitTextToSize(selectedTicket.description, 170);
+    doc.text(descriptionLines, 30, yOffset);
+    yOffset += descriptionLines.length * 6 + 5; // Adjust based on lines
+
+    // Two-column layout for details
+    doc.setFont("helvetica", "bold");
+    doc.text("Status:", 10, yOffset);
+    doc.setFont("helvetica", "normal");
+    doc.text(selectedTicket.status, 30, yOffset);
+    doc.setFont("helvetica", "bold");
+    doc.text("Priority:", 100, yOffset);
+    doc.setFont("helvetica", "normal");
+    doc.text(selectedTicket.priority, 120, yOffset);
+    yOffset += 8;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Assigned To:", 10, yOffset);
+    doc.setFont("helvetica", "normal");
+    doc.text(selectedTicket.assignedTo?.username || "Unassigned", 30, yOffset);
+    doc.setFont("helvetica", "bold");
+    doc.text("Due Date:", 100, yOffset);
+    doc.setFont("helvetica", "normal");
+    doc.text(selectedTicket.dueDate ? new Date(selectedTicket.dueDate).toLocaleDateString() : "N/A", 120, yOffset);
+    yOffset += 8;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Escalation Level:", 10, yOffset);
+    doc.setFont("helvetica", "normal");
+    doc.text(selectedTicket.escalationLevel || "N/A", 40, yOffset);
+    yOffset += 10;
+
+    // Attachments Section
+    doc.setFont("helvetica", "bold");
+    doc.text("Attachments:", 10, yOffset);
+    doc.setFillColor(240, 240, 240); // Light gray background
+    doc.rect(10, yOffset + 2, 190, selectedTicket.attachments.length > 0 ? selectedTicket.attachments.length * 8 + 8 : 12, "F");
+    yOffset += 8;
 
     if (selectedTicket.attachments.length > 0) {
-      doc.text("Attachment URLs:", 20, 130);
+      doc.setFont("helvetica", "normal");
       selectedTicket.attachments.forEach((attachment, index) => {
-        doc.text(`${index + 1}. ${attachment.url}`, 20, 140 + index * 10, { maxWidth: 160 });
+        const attachmentText = `${index + 1}. ${attachment.filename} (${attachment.url})`;
+        const attachmentLines = doc.splitTextToSize(attachmentText, 170);
+        doc.text(attachmentLines, 15, yOffset);
+        yOffset += attachmentLines.length * 6;
       });
+    } else {
+      doc.setFont("helvetica", "italic");
+      doc.text("No attachments", 15, yOffset);
+      yOffset += 6;
     }
 
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100); // Gray text
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 10, pageHeight - 10);
+    doc.text(`Page 1 of 1`, 180, pageHeight - 10);
+
+    // Save the PDF
     doc.save(`ticket_${selectedTicket.ticketNumber}.pdf`);
   };
 
@@ -448,7 +523,6 @@ const Tickets = () => {
             )}
           </div>
 
-          {/* Create/Edit Ticket Modal */}
           <FlowbiteModal show={showModal} onClose={resetForm}>
             <form onSubmit={handleSubmit} className="p-6">
               <h2 className="text-xl font-semibold mb-4">
@@ -549,7 +623,6 @@ const Tickets = () => {
             </form>
           </FlowbiteModal>
 
-          {/* View Ticket Modal */}
           <FlowbiteModal show={showViewModal} onClose={() => setShowViewModal(false)} size="lg">
             <FlowbiteModal.Header className="bg-gradient-to-r from-purple-500 to-blue-600">
               <span className="text-white">Ticket Details</span>
