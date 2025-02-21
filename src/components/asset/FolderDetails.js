@@ -1,29 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { 
-  Modal, 
-  Button, 
-  Card, 
-  TextInput, 
-  Spinner 
-} from 'flowbite-react';
+import { Modal, Button } from 'flowbite-react';
+import { FiDownload, FiTrash2, FiPlus, FiMove } from 'react-icons/fi'; // Added FiMove
 import SidebarComponent from '../utils/SidebarComponent';
-import { 
-  HiOutlineFolder, 
-  HiOutlinePlus, 
-  HiOutlineTrash, 
-  HiOutlineSearch, 
-  HiOutlineDownload,
-  HiOutlineCalendar
-} from 'react-icons/hi';
 
 const FolderDetails = () => {
-  const { id } = useParams(); // Get the folder ID from the URL
+  const { id } = useParams();
   const [folder, setFolder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(null); // For deletion confirmation, store asset ID
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [targetFolderId, setTargetFolderId] = useState('');
@@ -41,16 +27,11 @@ const FolderDetails = () => {
   const [location, setLocation] = useState('');
   const [hardwareSpecs, setHardwareSpecs] = useState('');
   const [softwareVersion, setSoftwareVersion] = useState('');
-  const [searchTerm, setSearchTerm] = useState(''); // For search functionality
-  const [currentPage, setCurrentPage] = useState(1);
-  const [assetsPerPage] = useState(5); // Number of assets per page
 
   useEffect(() => {
     const fetchFolder = async () => {
       try {
-        const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/${id}`, {
-          headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` } // Add auth header if required
-        });
+        const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/${id}`);
         if (response.ok) {
           const data = await response.json();
           setFolder(data);
@@ -64,11 +45,13 @@ const FolderDetails = () => {
       }
     };
 
+    fetchFolder();
+  }, [id]);
+
+  useEffect(() => {
     const fetchFolders = async () => {
       try {
-        const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/list`, {
-          headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` } // Add auth header if required
-        });
+        const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/list`);
         if (response.ok) {
           const data = await response.json();
           setFolders(data);
@@ -80,9 +63,8 @@ const FolderDetails = () => {
       }
     };
 
-    fetchFolder();
     fetchFolders();
-  }, [id]);
+  }, []);
 
   const handleFileChange = (e) => {
     setFiles(e.target.files);
@@ -94,7 +76,6 @@ const FolderDetails = () => {
     for (const file of files) {
       formData.append('attachments', file);
     }
-    formData.append('folderId', id);
     formData.append('assetName', assetName);
     formData.append('assetType', assetType);
     formData.append('assetDescription', assetDescription);
@@ -107,21 +88,22 @@ const FolderDetails = () => {
     formData.append('location', location);
     formData.append('hardwareSpecs', hardwareSpecs);
     formData.append('softwareVersion', softwareVersion);
+    formData.append('folderId', id);
 
     try {
       const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/create`, {
         method: 'POST',
         body: formData,
       });
-
       if (response.ok) {
         const data = await response.json();
-        setFolder(prevFolder => ({
+        setFolder((prevFolder) => ({
           ...prevFolder,
           assets: [...prevFolder.assets, ...data.assets],
         }));
         setModalOpen(false);
         setFiles([]);
+        // Reset form fields
         setAssetName('');
         setAssetType('');
         setAssetDescription('');
@@ -155,19 +137,16 @@ const FolderDetails = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": `Bearer ${localStorage.getItem('token')}` // Add auth header if required
         },
         body: JSON.stringify({ assetId: selectedAsset._id, targetFolderId }),
       });
-
       if (response.ok) {
-        setFolder(prevFolder => ({
+        setFolder((prevFolder) => ({
           ...prevFolder,
-          assets: prevFolder.assets.filter(asset => asset._id !== selectedAsset._id),
+          assets: prevFolder.assets.filter((asset) => asset._id !== selectedAsset._id),
         }));
         setMoveModalOpen(false);
         setSelectedAsset(null);
-        setTargetFolderId('');
       } else {
         console.error('Failed to move file:', response.statusText);
       }
@@ -177,17 +156,14 @@ const FolderDetails = () => {
   };
 
   const handleDeleteAsset = async (assetId) => {
-    setDeleteModalOpen(null); // Close confirmation modal after deletion
     try {
       const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/${assetId}`, {
         method: 'DELETE',
-        headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` } // Add auth header if required
       });
-
       if (response.ok) {
-        setFolder(prevFolder => ({
+        setFolder((prevFolder) => ({
           ...prevFolder,
-          assets: prevFolder.assets.filter(asset => asset._id !== assetId),
+          assets: prevFolder.assets.filter((asset) => asset._id !== assetId),
         }));
       } else {
         console.error('Failed to delete asset:', response.statusText);
@@ -197,337 +173,280 @@ const FolderDetails = () => {
     }
   };
 
-  // Filter assets based on search term
-  const filteredAssets = folder?.assets.filter(asset =>
-    asset.assetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    asset.assetType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (asset.vendor && asset.vendor.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (asset.model && asset.model.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (asset.serialNumber && asset.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  // Pagination logic
-  const indexOfLastAsset = currentPage * assetsPerPage;
-  const indexOfFirstAsset = indexOfLastAsset - assetsPerPage;
-  const currentAssets = filteredAssets?.slice(indexOfFirstAsset, indexOfLastAsset);
-  const totalPages = Math.ceil((filteredAssets?.length || 0) / assetsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const handleDownload = async (assetPath) => {
-    try {
-      const response = await fetch(assetPath, {
-        headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` } // Add auth header if required
-      });
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = assetPath.split('/').pop() || 'asset_file'; // Use the filename from the URL or a default name
-        document.body.appendChild(link);
-        link.click();
-        window.URL.revokeObjectURL(url);
-        link.remove();
-      } else {
-        console.error('Failed to download file:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error downloading file:', error);
-    }
-  };
-
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">
       <SidebarComponent />
       <div className="flex-1 p-6">
-        <div className="flex justify-between items-center mb-6 bg-gray-100 p-4 rounded-lg shadow">
-          <h1 className="text-2xl font-bold text-gray-800">Folder Details</h1>
-          <Button
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Folder Details</h1>
+          <button
             onClick={() => setModalOpen(true)}
-            color="blue"
-            icon={HiOutlinePlus}
-            className="hover:bg-blue-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
           >
-            Upload Asset
-          </Button>
+            <FiPlus size={18} />
+            Create Asset
+          </button>
         </div>
 
+        {/* Loading State */}
         {loading ? (
-          <div className="flex justify-center py-10">
-            <Spinner size="xl" />
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
           </div>
         ) : folder ? (
-          <div className="space-y-6">
-            <div className="p-4 bg-white rounded-lg shadow-md border border-gray-200">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <HiOutlineFolder className="text-blue-500 w-6 h-6" />
-                  <h2 className="text-xl font-semibold text-blue-600">{folder.category}</h2>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <HiOutlineCalendar className="text-gray-500 w-5 h-5" />
-                  <span>Created on: {new Date(folder.dateCreated).toLocaleDateString()}</span>
-                </div>
-              </div>
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            {/* Folder Info */}
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-blue-600">{folder.category}</h2>
+              <p className="text-sm text-gray-500">
+                Created on: {new Date(folder.dateCreated).toLocaleDateString()}
+              </p>
             </div>
 
-            {/* Search Input */}
-            <div className="mb-4">
-              <TextInput
-                icon={HiOutlineSearch}
-                type="text"
-                placeholder="Search assets..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
+            {/* Assets Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-4 font-semibold text-gray-700">File Name</th>
+                    <th className="p-4 font-semibold text-gray-700">Asset Type</th>
+                    <th className="p-4 font-semibold text-gray-700">Manufacturer</th>
+                    <th className="p-4 font-semibold text-gray-700">Model</th>
+                    <th className="p-4 font-semibold text-gray-700">Serial Number</th>
+                    <th className="p-4 font-semibold text-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {folder.assets.map((asset) => (
+                    <tr
+                      key={asset._id}
+                      className="border-b hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="p-4">
+                        <a
+                          href={`${asset.assetPath}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-blue-500 hover:underline"
+                        >
+                          {asset.assetName}
+                          <FiDownload size={16} className="text-gray-500" />
+                        </a>
+                      </td>
+                      <td className="p-4 text-gray-700">{asset.assetType}</td>
+                      <td className="p-4 text-gray-700">{asset.manufacturer}</td>
+                      <td className="p-4 text-gray-700">{asset.model}</td>
+                      <td className="p-4 text-gray-700">{asset.serialNumber}</td>
+                      <td className="p-4 flex gap-2">
+                        <button
+                          onClick={() => handleMoveClick(asset)}
+                          className="text-blue-500 hover:text-blue-700 transition"
+                          title="Move"
+                        >
+                          <FiMove size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAsset(asset._id)}
+                          className="text-red-500 hover:text-red-700 transition"
+                          title="Delete"
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500">Folder not found</p>
+        )}
 
-            {/* Assets Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentAssets?.map((asset) => (
-                <Card
-                  key={asset._id}
-                  className="p-4 shadow-md rounded-lg border border-gray-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
-                >
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <HiOutlineFolder className="text-blue-500 w-5 h-5" />
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">{asset.assetName}</h3>
-                      </div>
-                      <Button
-                        onClick={() => handleDownload(asset.assetPath)}
-                        color="gray"
-                        size="xs"
-                        className="p-1 rounded-full hover:bg-gray-300"
-                        title="Download Asset"
-                      >
-                        <HiOutlineDownload className="w-5 h-5 text-gray-700" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                      <div><span>Type: {asset.assetType || 'N/A'}</span></div>
-                      <div><span>Vendor: {asset.vendor || 'N/A'}</span></div>
-                      <div><span>Model: {asset.model || 'N/A'}</span></div>
-                      <div><span>Serial Number: {asset.serialNumber || 'N/A'}</span></div>
-                    </div>
-                    <div className="flex justify-between mt-2">
-                      <Button
-                        onClick={() => handleMoveClick(asset)}
-                        color="blue"
-                        size="xs"
-                        className="hover:bg-blue-600"
-                      >
-                        Move
-                      </Button>
-                      <Button
-                        onClick={() => setDeleteModalOpen(asset._id)}
-                        color="failure"
-                        size="xs"
-                        className="hover:bg-red-600"
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-4 mt-6">
-                <Button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  color="gray"
-                  className="hover:bg-gray-300"
-                >
-                  Previous
-                </Button>
-                <span className="self-center text-sm text-gray-700">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  color="gray"
-                  className="hover:bg-gray-300"
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-
-            {/* Upload Modal */}
-            <Modal show={modalOpen} onClose={() => setModalOpen(false)} size="md">
-              <Modal.Header className="p-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Upload Asset</h3>
-              </Modal.Header>
-              <Modal.Body className="p-4 space-y-4">
-                <TextInput
-                  id="assetName"
-                  placeholder="Asset Name"
+        {/* Create Asset Modal */}
+        <Modal show={modalOpen} onClose={() => setModalOpen(false)}>
+          <Modal.Header>Create New Asset</Modal.Header>
+          <Modal.Body>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Asset Name</label>
+                <input
+                  type="text"
                   value={assetName}
                   onChange={(e) => setAssetName(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter asset name"
                 />
-                <TextInput
-                  id="assetType"
-                  placeholder="Asset Type"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Asset Type</label>
+                <input
+                  type="text"
                   value={assetType}
                   onChange={(e) => setAssetType(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter asset type"
                 />
-                <TextInput
-                  id="assetDescription"
-                  placeholder="Asset Description"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea
                   value={assetDescription}
                   onChange={(e) => setAssetDescription(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter description"
                 />
-                <TextInput
-                  id="purchaseDate"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Purchase Date</label>
+                <input
                   type="date"
                   value={purchaseDate}
                   onChange={(e) => setPurchaseDate(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
-                <TextInput
-                  id="cost"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Cost</label>
+                <input
                   type="number"
-                  placeholder="Cost"
                   value={cost}
                   onChange={(e) => setCost(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter cost"
                 />
-                <TextInput
-                  id="vendor"
-                  placeholder="Vendor"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Vendor</label>
+                <input
+                  type="text"
                   value={vendor}
                   onChange={(e) => setVendor(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter vendor"
                 />
-                <TextInput
-                  id="invoiceNumber"
-                  placeholder="Invoice Number"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Invoice Number</label>
+                <input
+                  type="text"
                   value={invoiceNumber}
                   onChange={(e) => setInvoiceNumber(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter invoice number"
                 />
-                <TextInput
-                  id="warranty"
-                  placeholder="Warranty (e.g., 1 year)"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Warranty</label>
+                <input
+                  type="text"
                   value={warranty}
                   onChange={(e) => setWarranty(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter warranty"
                 />
-                <TextInput
-                  id="purchaseOrderNumber"
-                  placeholder="Purchase Order Number"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Purchase Order Number</label>
+                <input
+                  type="text"
                   value={purchaseOrderNumber}
                   onChange={(e) => setPurchaseOrderNumber(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter PO number"
                 />
-                <TextInput
-                  id="location"
-                  placeholder="Location"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Location</label>
+                <input
+                  type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter location"
                 />
-                <TextInput
-                  id="hardwareSpecs"
-                  placeholder="Hardware Specs"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Hardware Specs</label>
+                <input
+                  type="text"
                   value={hardwareSpecs}
                   onChange={(e) => setHardwareSpecs(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter hardware specs"
                 />
-                <TextInput
-                  id="softwareVersion"
-                  placeholder="Software Version"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Software Version</label>
+                <input
+                  type="text"
                   value={softwareVersion}
                   onChange={(e) => setSoftwareVersion(e.target.value)}
-                  className="w-full"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter software version"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Attachments</label>
                 <input
                   type="file"
                   multiple
                   onChange={handleFileChange}
-                  className="w-full p-2 border rounded-lg"
+                  className="mt-1 w-full p-2 border border-gray-300 rounded-lg"
                 />
-                {uploading && <Spinner size="sm" className="mt-2" />}
-              </Modal.Body>
-              <Modal.Footer className="p-4 bg-gray-50 border-t border-gray-200">
-                <Button onClick={handleFileUpload} color="blue" disabled={uploading}>
-                  <HiOutlinePlus className="mr-2 w-5 h-5" />
-                  Upload
-                </Button>
-                <Button onClick={() => setModalOpen(false)} color="gray" className="ml-2" disabled={uploading}>
-                  Cancel
-                </Button>
-              </Modal.Footer>
-            </Modal>
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              onClick={handleFileUpload}
+              disabled={uploading || !assetName || files.length === 0}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {uploading ? 'Uploading...' : 'Upload'}
+            </Button>
+            <Button color="gray" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
-            {/* Move Modal */}
-            <Modal show={moveModalOpen} onClose={() => setMoveModalOpen(false)} size="md">
-              <Modal.Header className="p-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Move Asset</h3>
-              </Modal.Header>
-              <Modal.Body className="p-4">
-                <p className="mb-4 text-sm text-gray-700">
-                  Move "{selectedAsset?.assetName}" to another folder:
-                </p>
-                <select
-                  value={targetFolderId}
-                  onChange={(e) => setTargetFolderId(e.target.value)}
-                  className="w-full p-2 border rounded-lg"
-                >
-                  <option value="">Select a folder</option>
-                  {folders.map((folder) => (
-                    <option key={folder._id} value={folder._id}>
-                      {folder.category}
-                    </option>
-                  ))}
-                </select>
-              </Modal.Body>
-              <Modal.Footer className="p-4 bg-gray-50 border-t border-gray-200">
-                <Button onClick={handleMoveFile} color="blue" disabled={!targetFolderId}>
-                  Move
-                </Button>
-                <Button onClick={() => setMoveModalOpen(false)} color="gray" className="ml-2">
-                  Cancel
-                </Button>
-              </Modal.Footer>
-            </Modal>
-
-            {/* Delete Confirmation Modal */}
-            <Modal show={deleteModalOpen !== null} onClose={() => setDeleteModalOpen(null)} size="sm">
-              <Modal.Header className="p-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Confirm Deletion</h3>
-              </Modal.Header>
-              <Modal.Body className="p-4 text-center">
-                <p className="text-sm text-gray-700">
-                  Are you sure you want to delete the asset "{folder?.assets.find(asset => asset._id === deleteModalOpen)?.assetName}"? This action cannot be undone.
-                </p>
-              </Modal.Body>
-              <Modal.Footer className="p-4 bg-gray-50 border-t border-gray-200">
-                <Button onClick={() => handleDeleteAsset(deleteModalOpen)} color="failure">
-                  Delete
-                </Button>
-                <Button onClick={() => setDeleteModalOpen(null)} color="gray" className="ml-2">
-                  Cancel
-                </Button>
-              </Modal.Footer>
-            </Modal>
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center py-10">Folder not found</p>
-        )}
+        {/* Move Asset Modal */}
+        <Modal show={moveModalOpen} onClose={() => setMoveModalOpen(false)}>
+          <Modal.Header>Move Asset</Modal.Header>
+          <Modal.Body>
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                Move <span className="font-semibold">{selectedAsset?.assetName}</span> to:
+              </p>
+              <select
+                value={targetFolderId}
+                onChange={(e) => setTargetFolderId(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select a folder</option>
+                {folders.map((folder) => (
+                  <option key={folder._id} value={folder._id}>
+                    {folder.category}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              onClick={handleMoveFile}
+              disabled={!targetFolderId}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Move
+            </Button>
+            <Button color="gray" onClick={() => setMoveModalOpen(false)}>
+              Cancel
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     </div>
   );
