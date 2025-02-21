@@ -1,118 +1,110 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // Import useParams to get route parameters
-import { Modal, Button } from 'flowbite-react'; // Import Flowbite components
-import { FiDownload } from 'react-icons/fi'; // Import icons
-import SidebarComponent from '../utils/SidebarComponent';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Modal, Button, Spinner, Card, Label, TextInput, Textarea, Select } from "flowbite-react";
+import { FiDownload, FaTrash } from "react-icons/fi"; // Added FaTrash for delete
+import SidebarComponent from "../utils/SidebarComponent";
 
 const FolderDetails = () => {
-  const { id } = useParams(); // Get the folder ID from the URL
+  const { id } = useParams();
   const [folder, setFolder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [moveModalOpen, setMoveModalOpen] = useState(false); // Move modal state
+  const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [files, setFiles] = useState([]);
-  const [uploading, setUploading] = useState(false); // Add uploading state
-  const [targetFolderId, setTargetFolderId] = useState(''); // Target folder for moving files
-  const [folders, setFolders] = useState([]); // Folders for moving assets
-  const [selectedAsset, setSelectedAsset] = useState(null); // Selected asset to move
-  const [assetName, setAssetName] = useState('');
-  const [assetType, setAssetType] = useState('');
-  const [assetDescription, setAssetDescription] = useState('');
-  const [purchaseDate, setPurchaseDate] = useState('');
-  const [cost, setCost] = useState('');
-  const [vendor, setVendor] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('');
-  const [warranty, setWarranty] = useState('');
-  const [purchaseOrderNumber, setPurchaseOrderNumber] = useState('');
-  const [location, setLocation] = useState('');
-  const [hardwareSpecs, setHardwareSpecs] = useState('');
-  const [softwareVersion, setSoftwareVersion] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [targetFolderId, setTargetFolderId] = useState("");
+  const [folders, setFolders] = useState([]);
+  const [selectedAsset, setSelectedAsset] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [formData, setFormData] = useState({
+    assetName: "",
+    assetType: "",
+    assetDescription: "",
+    purchaseDate: "",
+    cost: "",
+    vendor: "",
+    invoiceNumber: "",
+    warranty: "",
+    purchaseOrderNumber: "",
+    location: "",
+    hardwareSpecs: "",
+    softwareVersion: "",
+  });
 
   useEffect(() => {
-    const fetchFolder = async () => {
-      try {
-        const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFolder(data);
-        } else {
-          console.error('Failed to fetch folder:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Error fetching folder details:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchFolder();
+    fetchFolders();
   }, [id]);
 
-  useEffect(() => {
-    const fetchFolders = async () => {
-      try {
-        const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/list`);
-        if (response.ok) {
-          const data = await response.json();
-          setFolders(data);
-        } else {
-          console.error('Failed to fetch folders:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Error fetching folders:', error);
+  const fetchFolder = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFolder(data);
+      } else {
+        setErrorMessage("Failed to fetch folder details");
       }
-    };
+    } catch (error) {
+      setErrorMessage("Error fetching folder: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchFolders();
-  }, []);
+  const fetchFolders = async () => {
+    try {
+      const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/folder/list`);
+      if (response.ok) {
+        const data = await response.json();
+        setFolders(data);
+      } else {
+        setErrorMessage("Failed to fetch folders");
+      }
+    } catch (error) {
+      setErrorMessage("Error fetching folders: " + error.message);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleFileChange = (e) => {
-    setFiles(e.target.files); // Update files state with selected files
+    setFiles(Array.from(e.target.files));
   };
 
   const handleFileUpload = async () => {
-    setUploading(true); // Set uploading state to true
-    const formData = new FormData();
-    for (const file of files) {
-      formData.append('attachments', file);
-    }
-
-    // Append asset information
-    formData.append('assetName', assetName);
-    formData.append('assetType', assetType);
-    formData.append('assetDescription', assetDescription);
-    formData.append('purchaseDate', purchaseDate);
-    formData.append('cost', cost);
-    formData.append('vendor', vendor);
-    formData.append('invoiceNumber', invoiceNumber);
-    formData.append('warranty', warranty);
-    formData.append('purchaseOrderNumber', purchaseOrderNumber);
-    formData.append('location', location);
-    formData.append('hardwareSpecs', hardwareSpecs);
-    formData.append('softwareVersion', softwareVersion);
-    formData.append('folderId', id); // Assuming you need to send folder ID
+    setUploading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+    const uploadData = new FormData();
+    files.forEach((file) => uploadData.append("attachments", file));
+    Object.entries(formData).forEach(([key, value]) => uploadData.append(key, value));
+    uploadData.append("folderId", id);
 
     try {
       const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/create`, {
-        method: 'POST',
-        body: formData,
+        method: "POST",
+        body: uploadData,
       });
-
       if (response.ok) {
         const data = await response.json();
-        setFolder(prevFolder => ({
-          ...prevFolder,
-          assets: [...prevFolder.assets, ...data.assets], // Update folder with new assets
+        setFolder((prev) => ({
+          ...prev,
+          assets: [...prev.assets, ...data.assets],
         }));
-        setModalOpen(false); // Close the modal
-        setFiles([]); // Clear the file input
+        setSuccessMessage("Assets uploaded successfully");
+        resetForm();
       } else {
-        console.error('Failed to upload files:', response.statusText);
+        setErrorMessage("Failed to upload assets");
       }
     } catch (error) {
-      console.error('Error uploading files:', error);
+      setErrorMessage("Error uploading assets: " + error.message);
     } finally {
-      setUploading(false); // Set uploading state to false
+      setUploading(false);
     }
   };
 
@@ -122,252 +114,370 @@ const FolderDetails = () => {
   };
 
   const handleMoveFile = async () => {
+    if (!targetFolderId) {
+      setErrorMessage("Please select a target folder");
+      return;
+    }
     try {
       const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/move`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assetId: selectedAsset._id, targetFolderId }),
       });
-
       if (response.ok) {
-        // Update the folder state after moving the asset
-        setFolder(prevFolder => ({
-          ...prevFolder,
-          assets: prevFolder.assets.filter(asset => asset._id !== selectedAsset._id),
+        setFolder((prev) => ({
+          ...prev,
+          assets: prev.assets.filter((asset) => asset._id !== selectedAsset._id),
         }));
-        setMoveModalOpen(false); // Close the modal
-        setSelectedAsset(null); // Clear the selected asset
+        setSuccessMessage("Asset moved successfully");
+        setMoveModalOpen(false);
+        setSelectedAsset(null);
+        setTargetFolderId("");
       } else {
-        console.error('Failed to move file:', response.statusText);
+        setErrorMessage("Failed to move asset");
       }
     } catch (error) {
-      console.error('Error moving file:', error);
+      setErrorMessage("Error moving asset: " + error.message);
     }
   };
 
+  const handleDeleteAsset = async (assetId) => {
+    if (!window.confirm("Are you sure you want to delete this asset?")) return;
+    try {
+      const response = await fetch(`https://itdesk-backend.vercel.app/api/assets/${assetId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setFolder((prev) => ({
+          ...prev,
+          assets: prev.assets.filter((asset) => asset._id !== assetId),
+        }));
+        setSuccessMessage("Asset deleted successfully");
+      } else {
+        setErrorMessage("Failed to delete asset");
+      }
+    } catch (error) {
+      setErrorMessage("Error deleting asset: " + error.message);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      assetName: "",
+      assetType: "",
+      assetDescription: "",
+      purchaseDate: "",
+      cost: "",
+      vendor: "",
+      invoiceNumber: "",
+      warranty: "",
+      purchaseOrderNumber: "",
+      location: "",
+      hardwareSpecs: "",
+      softwareVersion: "",
+    });
+    setFiles([]);
+    setModalOpen(false);
+  };
+
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-screen bg-gray-100">
       <SidebarComponent />
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Folder Details</h1>
-        <div className='w-full flex justify-between items-center mb-4 bg-gray-100 p-2'>
-          <button onClick={() => setModalOpen(true)} type="button" className="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Create</button>
-        </div>
-        {loading ? (
-  <p>Loading...</p>
-) : folder ? (
-  <div className="p-4 shadow-md border border-gray-200">
-    <div className="flex justify-between items-center mb-4">
-      <h2 className="text-xl font-semibold mb-2 text-blue-600">{folder.category}</h2>
-      <p className="flex items-center text-sm text-gray-600 mb-4">
-        Created on: {new Date(folder.dateCreated).toLocaleDateString()}
-      </p>
-    </div>
-    <table className="w-full border-collapse">
-      <thead>
-        <tr>
-          <th className="border-b-2 p-2 text-left">File Name</th>
-          <th className="border-b-2 p-2 text-left">Asset Type</th>
-          <th className="border-b-2 p-2 text-left">Manufacturer</th>
-          <th className="border-b-2 p-2 text-left">Model</th>
-          <th className="border-b-2 p-2 text-left">Serial Number</th>
-          <th className="border-b-2 p-2 text-left">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {folder.assets.map(asset => (
-          <tr key={asset._id}>
-            <td className="p-2">
-              <a
-                href={`${asset.assetPath}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 underline flex items-center gap-2"
-              >
-                {asset.assetName}
-                <FiDownload size={16} className="text-gray-600 hover:text-blue-700" />
-              </a>
-            </td>
-            <td className="p-2">{asset.assetType}</td>
-            <td className="p-2">{asset.manufacturer || 'N/A'}</td>
-            <td className="p-2">{asset.model || 'N/A'}</td>
-            <td className="p-2">{asset.serialNumber || 'N/A'}</td>
-            <td className="flex flex-row p-2 items-center gap-2">
-              <span onClick={() => handleMoveClick(asset)} className="text-gray-600 text-sm hover:underline hover:text-blue-600 cursor-pointer">Move |</span>
-              <span className="text-gray-600 text-sm hover:underline hover:text-blue-600 cursor-pointer">Rename |</span>
-              <span className="text-gray-600 text-sm hover:underline hover:text-blue-600 cursor-pointer">Delete</span>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-) : (
-  <p>No folder found</p>
-)}
+      <div className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-semibold text-gray-800">Folder Details</h1>
+            <Button onClick={() => setModalOpen(true)} gradientDuoTone="greenToBlue">
+              Create Asset
+            </Button>
+          </div>
 
+          {errorMessage && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">{errorMessage}</div>
+          )}
+          {successMessage && (
+            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">{successMessage}</div>
+          )}
 
-        {/* Modal for Uploading Files */}
-        <Modal show={modalOpen} onClose={() => setModalOpen(false)}>
-          <Modal.Header>Create Asset</Modal.Header>
-          <Modal.Body>
-            {uploading ? (
-              <p>Uploading files...</p> // Show uploading message
-            ) : (
-              <>
-                <input
-                  type="text"
-                  value={assetName}
-                  onChange={(e) => setAssetName(e.target.value)}
-                  placeholder="Asset Name"
-                  className="mb-4 w-full p-2 border border-gray-300 rounded"
-                />
-                <select
-                  value={assetType}
-                  onChange={(e) => setAssetType(e.target.value)}
-                  className="mb-4 w-full p-2 border border-gray-300 rounded"
-                >
-                  <option value="">Select Asset Type</option>
-                  <option value="Purchase">Purchase</option>
-                  <option value="Software">Software</option>
-                  <option value="Hardware">Hardware</option>
-                  <option value="Other">Other</option>
-                </select>
-
-                {assetType === 'Purchase' && (
-                  <>
-                    <input
-                      type="date"
-                      value={purchaseDate}
-                      onChange={(e) => setPurchaseDate(e.target.value)}
-                      placeholder="Purchase Date"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="number"
-                      value={cost}
-                      onChange={(e) => setCost(e.target.value)}
-                      placeholder="Cost"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={vendor}
-                      onChange={(e) => setVendor(e.target.value)}
-                      placeholder="Vendor/Supplier"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={invoiceNumber}
-                      onChange={(e) => setInvoiceNumber(e.target.value)}
-                      placeholder="Invoice Number"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={warranty}
-                      onChange={(e) => setWarranty(e.target.value)}
-                      placeholder="Warranty Information"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={purchaseOrderNumber}
-                      onChange={(e) => setPurchaseOrderNumber(e.target.value)}
-                      placeholder="Purchase Order Number"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                    <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Location"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
-                    />
-                  </>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Spinner size="xl" />
+              <span className="ml-3 text-gray-600">Loading folder...</span>
+            </div>
+          ) : folder ? (
+            <Card className="shadow-lg">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-semibold text-blue-600">{folder.category}</h2>
+                  <p className="text-sm text-gray-500">Created: {formatDate(folder.dateCreated)}</p>
+                </div>
+                {folder.assets.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No assets in this folder</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-200">
+                          <th className="p-3 text-left text-sm font-semibold text-gray-700">File Name</th>
+                          <th className="p-3 text-left text-sm font-semibold text-gray-700">Asset Type</th>
+                          <th className="p-3 text-left text-sm font-semibold text-gray-700">Manufacturer</th>
+                          <th className="p-3 text-left text-sm font-semibold text-gray-700">Model</th>
+                          <th className="p-3 text-left text-sm font-semibold text-gray-700">Serial Number</th>
+                          <th className="p-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {folder.assets.map((asset) => (
+                          <tr key={asset._id} className="border-b hover:bg-gray-50">
+                            <td className="p-3">
+                              <a
+                                href={asset.assetPath}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline flex items-center gap-2"
+                              >
+                                {asset.assetName}
+                                <FiDownload className="text-gray-600 hover:text-blue-700" />
+                              </a>
+                            </td>
+                            <td className="p-3">{asset.assetType}</td>
+                            <td className="p-3">{asset.manufacturer || "N/A"}</td>
+                            <td className="p-3">{asset.model || "N/A"}</td>
+                            <td className="p-3">{asset.serialNumber || "N/A"}</td>
+                            <td className="p-3 flex gap-2">
+                              <Button
+                                size="xs"
+                                color="gray"
+                                onClick={() => handleMoveClick(asset)}
+                              >
+                                Move
+                              </Button>
+                              <Button
+                                size="xs"
+                                color="failure"
+                                onClick={() => handleDeleteAsset(asset._id)}
+                              >
+                                <FaTrash />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
+              </div>
+            </Card>
+          ) : (
+            <p className="text-center py-10 text-gray-600">No folder found</p>
+          )}
 
-                {assetType === 'Hardware' && (
-                  <>
-                    <input
-                      type="text"
-                      value={hardwareSpecs}
-                      onChange={(e) => setHardwareSpecs(e.target.value)}
-                      placeholder="Hardware Specifications"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
+          {/* Create Asset Modal */}
+          <Modal show={modalOpen} onClose={resetForm} size="lg">
+            <Modal.Header className="bg-gradient-to-r from-blue-500 to-blue-600">
+              <span className="text-white">Create New Asset</span>
+            </Modal.Header>
+            <Modal.Body className="space-y-4">
+              {uploading ? (
+                <div className="flex justify-center items-center">
+                  <Spinner size="lg" />
+                  <span className="ml-3">Uploading assets...</span>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="assetName" value="Asset Name" />
+                    <TextInput
+                      id="assetName"
+                      name="assetName"
+                      value={formData.assetName}
+                      onChange={handleInputChange}
+                      placeholder="Enter asset name"
+                      required
                     />
-                  </>
-                )}
-
-                {assetType === 'Software' && (
-                  <>
-                    <input
-                      type="text"
-                      value={softwareVersion}
-                      onChange={(e) => setSoftwareVersion(e.target.value)}
-                      placeholder="Software Version"
-                      className="mb-4 w-full p-2 border border-gray-300 rounded"
+                  </div>
+                  <div>
+                    <Label htmlFor="assetType" value="Asset Type" />
+                    <Select
+                      id="assetType"
+                      name="assetType"
+                      value={formData.assetType}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Asset Type</option>
+                      <option value="Purchase">Purchase</option>
+                      <option value="Software">Software</option>
+                      <option value="Hardware">Hardware</option>
+                      <option value="Other">Other</option>
+                    </Select>
+                  </div>
+                  {formData.assetType === "Purchase" && (
+                    <>
+                      <div>
+                        <Label htmlFor="purchaseDate" value="Purchase Date" />
+                        <TextInput
+                          id="purchaseDate"
+                          name="purchaseDate"
+                          type="date"
+                          value={formData.purchaseDate}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="cost" value="Cost" />
+                        <TextInput
+                          id="cost"
+                          name="cost"
+                          type="number"
+                          value={formData.cost}
+                          onChange={handleInputChange}
+                          placeholder="Enter cost"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vendor" value="Vendor" />
+                        <TextInput
+                          id="vendor"
+                          name="vendor"
+                          value={formData.vendor}
+                          onChange={handleInputChange}
+                          placeholder="Enter vendor"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="invoiceNumber" value="Invoice Number" />
+                        <TextInput
+                          id="invoiceNumber"
+                          name="invoiceNumber"
+                          value={formData.invoiceNumber}
+                          onChange={handleInputChange}
+                          placeholder="Enter invoice number"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="warranty" value="Warranty" />
+                        <TextInput
+                          id="warranty"
+                          name="warranty"
+                          value={formData.warranty}
+                          onChange={handleInputChange}
+                          placeholder="Enter warranty info"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="purchaseOrderNumber" value="Purchase Order Number" />
+                        <TextInput
+                          id="purchaseOrderNumber"
+                          name="purchaseOrderNumber"
+                          value={formData.purchaseOrderNumber}
+                          onChange={handleInputChange}
+                          placeholder="Enter PO number"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="location" value="Location" />
+                        <TextInput
+                          id="location"
+                          name="location"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          placeholder="Enter location"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {formData.assetType === "Hardware" && (
+                    <div className="md:col-span-2">
+                      <Label htmlFor="hardwareSpecs" value="Hardware Specifications" />
+                      <TextInput
+                        id="hardwareSpecs"
+                        name="hardwareSpecs"
+                        value={formData.hardwareSpecs}
+                        onChange={handleInputChange}
+                        placeholder="Enter hardware specs"
+                      />
+                    </div>
+                  )}
+                  {formData.assetType === "Software" && (
+                    <div className="md:col-span-2">
+                      <Label htmlFor="softwareVersion" value="Software Version" />
+                      <TextInput
+                        id="softwareVersion"
+                        name="softwareVersion"
+                        value={formData.softwareVersion}
+                        onChange={handleInputChange}
+                        placeholder="Enter software version"
+                      />
+                    </div>
+                  )}
+                  <div className="md:col-span-2">
+                    <Label htmlFor="assetDescription" value="Description" />
+                    <Textarea
+                      id="assetDescription"
+                      name="assetDescription"
+                      value={formData.assetDescription}
+                      onChange={handleInputChange}
+                      placeholder="Enter asset description"
+                      rows={4}
                     />
-                  </>
-                )}
-
-                <textarea
-                  value={assetDescription}
-                  onChange={(e) => setAssetDescription(e.target.value)}
-                  placeholder="Asset Description"
-                  rows="4"
-                  className="mb-4 w-full p-2 border border-gray-300 rounded"
-                />
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                  className="mb-4"
-                />
-              </>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            {!uploading && (
-              <Button onClick={handleFileUpload} color="success">
-                Upload
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label value="Attachments" />
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileChange}
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                </div>
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              {!uploading && (
+                <Button onClick={handleFileUpload} gradientDuoTone="greenToBlue">
+                  Upload
+                </Button>
+              )}
+              <Button onClick={resetForm} color="gray">
+                Cancel
               </Button>
-            )}
-            <Button onClick={() => setModalOpen(false)} color="gray">
-              Cancel
-            </Button>
-          </Modal.Footer>
-        </Modal>
+            </Modal.Footer>
+          </Modal>
 
-        {/* Modal for Moving Files */}
-        <Modal show={moveModalOpen} onClose={() => setMoveModalOpen(false)}>
-          <Modal.Header>Move File</Modal.Header>
-          <Modal.Body>
-            <select
-              value={targetFolderId}
-              onChange={(e) => setTargetFolderId(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-            >
-              <option value="" disabled>Select folder</option>
-              {folders.map((folder) => (
-                <option key={folder._id} value={folder._id}>
-                  {folder.category}
-                </option>
-              ))}
-            </select>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={handleMoveFile} color="success">
-              Move
-            </Button>
-            <Button onClick={() => setMoveModalOpen(false)} color="gray">
-              Cancel
-            </Button>
-          </Modal.Footer>
-        </Modal>
+          {/* Move Asset Modal */}
+          <Modal show={moveModalOpen} onClose={() => setMoveModalOpen(false)}>
+            <Modal.Header>Move Asset</Modal.Header>
+            <Modal.Body>
+              <Select
+                value={targetFolderId}
+                onChange={(e) => setTargetFolderId(e.target.value)}
+                required
+              >
+                <option value="">Select target folder</option>
+                {folders
+                  .filter((f) => f._id !== id) // Exclude current folder
+                  .map((folder) => (
+                    <option key={folder._id} value={folder._id}>
+                      {folder.category}
+                    </option>
+                  ))}
+              </Select>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button onClick={handleMoveFile} gradientDuoTone="greenToBlue">
+                Move
+              </Button>
+              <Button onClick={() => setMoveModalOpen(false)} color="gray">
+                Cancel
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        </div>
       </div>
     </div>
   );
