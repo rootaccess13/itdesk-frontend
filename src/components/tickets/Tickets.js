@@ -17,14 +17,17 @@ import {
   HiEye,
   HiDownload,
 } from "react-icons/hi";
-import { jsPDF } from "jspdf"; // Import jsPDF for PDF generation
+import { jsPDF } from "jspdf"; // Ensure correct import
+
+// Log jsPDF to verify import
+console.log("jsPDF imported:", jsPDF);
 
 const Tickets = () => {
   const [tickets, setTickets] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showTakeActionModal, setShowTakeActionModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false); // New state for view modal
-  const [selectedTicket, setSelectedTicket] = useState(null); // State for selected ticket to view
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [attachments, setAttachments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,11 +60,12 @@ const Tickets = () => {
           params: { page, limit: 6, status: filterStatus },
           headers: { Authorization: localStorage.getItem("token") },
         });
-        setTickets(res.data.tickets);
-        setTotalPages(res.data.totalPages);
+        setTickets(res.data.tickets || []); // Ensure tickets is an array
+        setTotalPages(res.data.totalPages || 1);
       } catch (err) {
         console.error(err);
         setToast({ show: true, message: "Failed to fetch tickets", type: "error" });
+        setTickets([]); // Fallback to empty array
       } finally {
         setLoading(false);
       }
@@ -209,8 +213,11 @@ const Tickets = () => {
   };
 
   const handleDownloadPDF = () => {
-    if (!selectedTicket) return;
-
+    if (!selectedTicket || typeof jsPDF !== "function") {
+      console.error("jsPDF not available or no ticket selected");
+      setToast({ show: true, message: "Unable to generate PDF", type: "error" });
+      return;
+    }
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text("Ticket Details", 20, 20);
@@ -237,31 +244,21 @@ const Tickets = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Open":
-        return "bg-blue-100 text-blue-800";
-      case "In Progress":
-        return "bg-yellow-100 text-yellow-800";
-      case "Resolved":
-        return "bg-green-100 text-green-800";
-      case "Closed":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case "Open": return "bg-blue-100 text-blue-800";
+      case "In Progress": return "bg-yellow-100 text-yellow-800";
+      case "Resolved": return "bg-green-100 text-green-800";
+      case "Closed": return "bg-gray-100 text-gray-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case "Low":
-        return "bg-green-100 text-green-800";
-      case "Medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "High":
-        return "bg-orange-100 text-orange-800";
-      case "Urgent":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case "Low": return "bg-green-100 text-green-800";
+      case "Medium": return "bg-yellow-100 text-yellow-800";
+      case "High": return "bg-orange-100 text-orange-800";
+      case "Urgent": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -564,7 +561,7 @@ const Tickets = () => {
               <span className="text-white">Ticket Details</span>
             </Modal.Header>
             <Modal.Body className="space-y-4">
-              {selectedTicket && (
+              {selectedTicket ? (
                 <div className="text-gray-700">
                   <h3 className="text-xl font-semibold text-gray-800 mb-2">{selectedTicket.title}</h3>
                   <div className="grid gap-2 md:grid-cols-2">
@@ -598,6 +595,8 @@ const Tickets = () => {
                     </div>
                   </div>
                 </div>
+              ) : (
+                <p className="text-gray-500">No ticket selected</p>
               )}
             </Modal.Body>
             <Modal.Footer>
