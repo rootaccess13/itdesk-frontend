@@ -300,14 +300,6 @@ const Tickets = () => {
           </div>
         )}
 
-        <Modal
-          show={showModal}
-          onClose={resetForm}
-          title={_id ? 'Edit Ticket Details' : 'All Tickets'}
-          tickets={_id ? [formData] : tickets} // Pass formData as ticket for editing, otherwise all tickets
-          onTicketUpdate={handleTicketUpdate}
-        />
-
         <TakeActionModal
           show={showTakeActionModal}
           onClose={() => setShowTakeActionModal(false)}
