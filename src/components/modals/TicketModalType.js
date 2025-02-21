@@ -54,7 +54,7 @@ const TicketModal = ({ show, onClose, title, tickets }) => {
         </Modal.Header>
         <Modal.Body className="p-6">
           <div className="overflow-x-auto">
-            <Table hoverable className="min-w-full">
+            <Table hoverable className="min-w-full table-auto">
               <Table.Head>
                 <Table.HeadCell className="py-3 px-4 bg-gray-50 text-left text-sm font-medium text-gray-700">
                   Ticket #
