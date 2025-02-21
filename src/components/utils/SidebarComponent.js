@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Sidebar,
   SidebarItem,
@@ -6,79 +6,97 @@ import {
   SidebarItemGroup,
 } from 'flowbite-react';
 import AuthContext from '../../context/AuthContext';
-import { 
-  HiOutlineHome,
-  HiOutlineTicket,
-  HiOutlineCog,
-  HiOutlineSpeakerphone,
-  HiOutlineBookOpen,
-  HiOutlineUsers
-} from 'react-icons/hi';
+import { FaHome, FaUsers, FaCogs, FaBullhorn, FaBook, FaUser, FaBars, FaTimes } from "react-icons/fa";
 
 const SidebarComponent = () => {
   const { user } = useContext(AuthContext);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   return (
-    <Sidebar 
-      className="fixed top-0 left-0 h-screen w-16 md:w-64 bg-gray-800 text-white transition-all duration-300 z-10"
-      aria-label="Main navigation"
-    >
-      <SidebarItems className="pt-6">
-        <SidebarItemGroup className="space-y-2">
-          <SidebarItem
-            href="/dashboard"
-            icon={HiOutlineHome}
-            className="flex items-center md:space-x-3 py-3 px-4 hover:bg-gray-700 transition-colors duration-200 text-gray-200 hover:text-white"
-          >
-            <span className="hidden md:inline text-sm font-medium">Dashboard</span>
-          </SidebarItem>
+    <div className="flex">
+      {/* Sidebar Toggle Button for Mobile */}
+      <button
+        onClick={toggleSidebar}
+        className="fixed top-4 left-4 z-50 p-2 text-white bg-gray-800 rounded-lg sm:hidden"
+      >
+        {isSidebarOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+      </button>
 
-          <SidebarItem
-            href="/tickets"
-            icon={HiOutlineTicket}
-            className="flex items-center md:space-x-3 py-3 px-4 hover:bg-gray-700 transition-colors duration-200 text-gray-200 hover:text-white"
-          >
-            <span className="hidden md:inline text-sm font-medium">Tickets</span>
-          </SidebarItem>
-
-          <SidebarItem
-            href="/assets"
-            icon={HiOutlineCog}
-            className="flex items-center md:space-x-3 py-3 px-4 hover:bg-gray-700 transition-colors duration-200 text-gray-200 hover:text-white"
-          >
-            <span className="hidden md:inline text-sm font-medium">Assets</span>
-          </SidebarItem>
-
-          {user && (user.role === 'staff' || user.role === 'administrator') && (
+      {/* Sidebar */}
+      <Sidebar
+        className={`h-full w-16 sm:w-64 lg:w-72 bg-gray-800 text-white fixed sm:relative transform transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full sm:translate-x-0'
+        }`}
+      >
+        <SidebarItems className="space-y-2">
+          <SidebarItemGroup>
             <SidebarItem
-              href="/announcements"
-              icon={HiOutlineSpeakerphone}
-              className="flex items-center md:space-x-3 py-3 px-4 hover:bg-gray-700 transition-colors duration-200 text-gray-200 hover:text-white"
+              href="/dashboard"
+              icon={FaHome}
+              className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
             >
-              <span className="hidden md:inline text-sm font-medium">Announcements</span>
+              <span className="sm:inline hidden">Dashboard</span>
             </SidebarItem>
-          )}
 
-          <SidebarItem
-            href="/articles"
-            icon={HiOutlineBookOpen}
-            className="flex items-center md:space-x-3 py-3 px-4 hover:bg-gray-700 transition-colors duration-200 text-gray-200 hover:text-white"
-          >
-            <span className="hidden md:inline text-sm font-medium">Articles</span>
-          </SidebarItem>
-
-          {user && (user.role === 'staff' || user.role === 'administrator') && (
             <SidebarItem
-              href="/users"
-              icon={HiOutlineUsers}
-              className="flex items-center md:space-x-3 py-3 px-4 hover:bg-gray-700 transition-colors duration-200 text-gray-200 hover:text-white"
+              href="/tickets"
+              icon={FaUsers}
+              className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
             >
-              <span className="hidden md:inline text-sm font-medium">Users</span>
+              <span className="sm:inline hidden">Tickets</span>
             </SidebarItem>
-          )}
-        </SidebarItemGroup>
-      </SidebarItems>
-    </Sidebar>
+
+            <SidebarItem
+              href="/assets"
+              icon={FaCogs}
+              className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
+            >
+              <span className="sm:inline hidden">Assets</span>
+            </SidebarItem>
+
+            {user && (user.role === 'staff' || user.role === 'administrator') && (
+              <SidebarItem
+                href="/announcements"
+                icon={FaBullhorn}
+                className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
+              >
+                <span className="sm:inline hidden">Announcements</span>
+              </SidebarItem>
+            )}
+
+            <SidebarItem
+              href="/articles"
+              icon={FaBook}
+              className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
+            >
+              <span className="sm:inline hidden">Articles</span>
+            </SidebarItem>
+
+            {user && (user.role === 'staff' || user.role === 'administrator') && (
+              <SidebarItem
+                href="/users"
+                icon={FaUser}
+                className="flex sm:flex-row sm:space-x-2 sm:py-2 sm:px-4 sm:w-auto w-12 justify-center"
+              >
+                <span className="sm:inline hidden">Users</span>
+              </SidebarItem>
+            )}
+          </SidebarItemGroup>
+        </SidebarItems>
+      </Sidebar>
+
+      {/* Overlay for Mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 sm:hidden"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+    </div>
   );
 };
 
