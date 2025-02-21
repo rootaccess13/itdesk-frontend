@@ -13,7 +13,7 @@ import {
 
 const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
   const [selectedImage, setSelectedImage] = useState(null);
-  const [loading, setLoading] = useState({}); // Object to track loading state per ticket
+  const [loading, setLoading] = useState({});
 
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -44,13 +44,14 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
   };
 
   const handleResolveTicket = async (ticketId) => {
+    if (!ticketId) return; // Guard against undefined ticketId
     setLoading((prev) => ({ ...prev, [ticketId]: true }));
     try {
       const response = await fetch(`https://itdesk-backend.vercel.app/api/tickets/${ticketId}/update/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': localStorage.getItem('token'), // Token from AuthContext used in Tickets.js
+          'Authorization': localStorage.getItem('token'),
         },
         body: JSON.stringify({ status: 'Resolved' }),
       });
@@ -58,7 +59,7 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
       if (response.ok) {
         const updatedTicket = await response.json();
         if (onTicketUpdate) {
-          onTicketUpdate(updatedTicket); // Notify parent component
+          onTicketUpdate(updatedTicket);
         }
       } else {
         console.error('Failed to resolve ticket:', response.statusText);
@@ -83,6 +84,7 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
           <div className="space-y-4">
             {tickets && tickets.length > 0 ? (
               tickets.map((ticket) => {
+                if (!ticket || !ticket._id) return null; // Skip invalid tickets
                 const { icon: StatusIcon, color } = getStatusInfo(ticket.status);
                 const isLoading = loading[ticket._id] || false;
                 return (
@@ -91,14 +93,13 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
                     className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Left Column */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <HiOutlineTicket className="text-blue-500 w-5 h-5" />
-                          <span className="font-medium text-gray-900 truncate">{ticket.ticketNumber}</span>
+                          <span className="font-medium text-gray-900 truncate">{ticket.ticketNumber || 'N/A'}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <h5 className="text-lg font-semibold text-gray-900 truncate">{ticket.title}</h5>
+                          <h5 className="text-lg font-semibold text-gray-900 truncate">{ticket.title || 'Untitled'}</h5>
                         </div>
                         <div className="flex items-center gap-2">
                           <HiDocumentText className="text-gray-500 w-5 h-5" />
@@ -106,19 +107,17 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
                         </div>
                         <div className="flex items-center gap-2">
                           <StatusIcon className={`w-5 h-5 p-1 rounded-full ${color}`} />
-                          <Badge color="gray" className="text-sm">{ticket.status}</Badge>
+                          <Badge color="gray" className="text-sm">{ticket.status || 'Unknown'}</Badge>
                         </div>
                       </div>
-
-                      {/* Right Column */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-gray-700">Priority:</span>
-                          <span className="text-sm text-gray-600">{ticket.priority}</span>
+                          <span className="text-sm text-gray-600">{ticket.priority || 'N/A'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-gray-700">Type:</span>
-                          <span className="text-sm text-gray-600">{ticket.type}</span>
+                          <span className="text-sm text-gray-600">{ticket.type || 'N/A'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <HiOutlineUser className="text-gray-500 w-5 h-5" />
@@ -128,7 +127,7 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
                         </div>
                         <div className="flex items-center gap-2">
                           <HiOutlineCalendar className="text-gray-500 w-5 h-5" />
-                          <span className="text-sm text-gray-700">{formatDate(ticket.createdAt)}</span>
+                          <span className="text-sm text-gray-700">{formatDate(ticket.createdAt) || 'N/A'}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <HiOutlinePaperClip className="text-gray-500 w-5 h-5" />
@@ -136,20 +135,20 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
                             <div className="space-y-1">
                               {ticket.attachments.map((attachment, index) => (
                                 <div key={index} className="flex items-center gap-2">
-                                  {attachment.url.startsWith('data:image') ? (
+                                  {attachment.url && attachment.url.startsWith('data:image') ? (
                                     <img
                                       src={attachment.url}
-                                      alt={attachment.filename}
+                                      alt={attachment.filename || 'Attachment'}
                                       className="w-12 h-12 rounded-lg cursor-pointer object-cover hover:opacity-80 transition"
                                       onClick={() => handleImageClick(attachment.url)}
                                     />
                                   ) : (
                                     <a
                                       href={attachment.url}
-                                      download={attachment.filename}
+                                      download={attachment.filename || 'file'}
                                       className="text-blue-500 hover:underline text-sm truncate max-w-[150px]"
                                     >
-                                      {attachment.filename}
+                                      {attachment.filename || 'Download'}
                                     </a>
                                   )}
                                 </div>
@@ -159,7 +158,6 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
                             <span className="text-sm text-gray-600">None</span>
                           )}
                         </div>
-                        {/* Resolve Button for In Progress Tickets */}
                         {ticket.status === 'In Progress' && (
                           <div className="mt-2">
                             <Button
@@ -191,7 +189,6 @@ const TicketModal = ({ show, onClose, title, tickets, onTicketUpdate }) => {
         </Modal.Footer>
       </Modal>
 
-      {/* Image Preview Modal */}
       {selectedImage && (
         <Modal size="4xl" show={selectedImage !== null} onClose={handleImageClose} popup>
           <Modal.Header className="p-4 border-b border-gray-200">
