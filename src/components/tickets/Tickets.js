@@ -63,6 +63,9 @@ const Tickets = () => {
     fetchTickets(currentPage);
   }, [currentPage, fetchTickets]);
 
+  // Destructure formData
+  const { _id, title, description, status, priority, type, assignedTo, escalationLevel, dueDate, comment } = formData;
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -299,7 +302,7 @@ const Tickets = () => {
                 <input
                   type="text"
                   name="title"
-                  value={formData.title}
+                  value={title}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                   required
@@ -309,7 +312,7 @@ const Tickets = () => {
                 <label className="block mb-1 text-sm font-medium">Status</label>
                 <select
                   name="status"
-                  value={formData.status}
+                  value={status}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                 >
@@ -323,7 +326,7 @@ const Tickets = () => {
                 <label className="block mb-1 text-sm font-medium">Description</label>
                 <textarea
                   name="description"
-                  value={formData.description}
+                  value={description}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                   rows="3"
@@ -334,7 +337,7 @@ const Tickets = () => {
                 <label className="block mb-1 text-sm font-medium">Priority</label>
                 <select
                   name="priority"
-                  value={formData.priority}
+                  value={priority}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                 >
@@ -349,7 +352,7 @@ const Tickets = () => {
                 <input
                   type="date"
                   name="dueDate"
-                  value={formData.dueDate}
+                  value={dueDate}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                 />
@@ -358,7 +361,7 @@ const Tickets = () => {
                 <label className="block mb-1 text-sm font-medium">Team</label>
                 <select
                   name="escalationLevel"
-                  value={formData.escalationLevel}
+                  value={escalationLevel}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                 >
