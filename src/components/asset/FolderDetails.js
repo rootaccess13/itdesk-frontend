@@ -186,7 +186,7 @@ const FolderDetails = () => {
     new Date(dateString).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-50">
       <SidebarComponent />
       <div className="flex-1 p-6">
         <div className="max-w-6xl mx-auto">
