@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
-import axios from 'axios';
-import Modal from '../modals/ticketModal'; // Correct import
-import TakeActionModal from '../utils/TakeActionModal';
-import SidebarComponent from '../utils/SidebarComponent';
-import { Spinner, Dropdown, Button, Toast } from 'flowbite-react';
-import AuthContext from '../../context/AuthContext';
+import React, { useState, useEffect, useContext, useCallback } from "react";
+import axios from "axios";
+import Modal from "../modals/ticketModal";
+import TakeActionModal from "../utils/TakeActionModal";
+import SidebarComponent from "../utils/SidebarComponent";
+import { Spinner, Dropdown, Button, Toast, Card } from "flowbite-react";
+import AuthContext from "../../context/AuthContext";
 import {
   HiOutlineTicket,
   HiOutlinePencil,
@@ -13,7 +13,8 @@ import {
   HiOutlinePaperClip,
   HiOutlineExclamationCircle,
   HiOutlineCheckCircle,
-} from 'react-icons/hi';
+  HiOutlineChartBar,
+} from "react-icons/hi";
 
 const Tickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -23,45 +24,62 @@ const Tickets = () => {
   const [attachments, setAttachments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [filterStatus, setFilterStatus] = useState('Open');
+  const [filterStatus, setFilterStatus] = useState("Open");
   const [formData, setFormData] = useState({
-    _id: '',
-    title: '',
-    description: '',
-    status: 'Open',
-    priority: 'Low',
-    type: 'Support',
-    assignedTo: '',
-    escalationLevel: '',
-    dueDate: '',
+    _id: "",
+    title: "",
+    description: "",
+    status: "Open",
+    priority: "Low",
+    type: "Support",
+    assignedTo: "",
+    escalationLevel: "",
+    dueDate: "",
     attachments: [],
-    comment: '',
+    comment: "",
   });
   const [selectedTicketId, setSelectedTicketId] = useState(null);
-  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [analytics, setAnalytics] = useState(null);
 
   const { user } = useContext(AuthContext);
 
-  const fetchTickets = useCallback(async (page) => {
-    setLoading(true);
+  const fetchTickets = useCallback(
+    async (page) => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets`, {
+          params: { page, limit: 6, status: filterStatus },
+          headers: { Authorization: localStorage.getItem("token") },
+        });
+        setTickets(res.data.tickets);
+        setTotalPages(res.data.totalPages);
+      } catch (err) {
+        console.error(err);
+        setToast({ show: true, message: "Failed to fetch tickets", type: "error" });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [filterStatus]
+  );
+
+  const fetchAnalytics = useCallback(async () => {
     try {
-      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets`, {
-        params: { page, limit: 6, status: filterStatus },
-        headers: { Authorization: localStorage.getItem('token') },
+      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/analytics`, {
+        headers: { Authorization: localStorage.getItem("token") },
       });
-      setTickets(res.data.tickets);
-      setTotalPages(res.data.totalPages);
+      setAnalytics(res.data);
     } catch (err) {
       console.error(err);
-      setToast({ show: true, message: 'Failed to fetch tickets', type: 'error' });
-    } finally {
-      setLoading(false);
+      setToast({ show: true, message: "Failed to fetch analytics", type: "error" });
     }
-  }, [filterStatus]);
+  }, []);
 
   useEffect(() => {
     fetchTickets(currentPage);
-  }, [currentPage, fetchTickets]);
+    fetchAnalytics();
+  }, [currentPage, fetchTickets, fetchAnalytics]);
 
   const { _id, title, description, status, priority, type, assignedTo, escalationLevel, dueDate, comment } = formData;
 
@@ -75,55 +93,57 @@ const Tickets = () => {
 
   const generateTicketNumber = () => {
     const date = new Date();
-    return `TKT-${date.getTime()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    return `TKT-${date.getTime()}-${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const ticketData = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      if (key !== '_id' && key !== 'attachments') ticketData.append(key, value);
+      if (key !== "_id" && key !== "attachments") ticketData.append(key, value);
     });
-    if (!_id) ticketData.append('ticketNumber', generateTicketNumber());
-    attachments.forEach((file) => ticketData.append('attachments', file));
+    if (!_id) ticketData.append("ticketNumber", generateTicketNumber());
+    attachments.forEach((file) => ticketData.append("attachments", file));
 
     try {
       const url = _id
         ? `https://itdesk-backend.vercel.app/api/tickets/edit/${_id}`
-        : 'https://itdesk-backend.vercel.app/api/tickets/create';
+        : "https://itdesk-backend.vercel.app/api/tickets/create";
       const method = _id ? axios.put : axios.post;
 
       const res = await method(url, ticketData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: localStorage.getItem('token'),
+          "Content-Type": "multipart/form-data",
+          Authorization: localStorage.getItem("token"),
         },
       });
 
-      setTickets(_id
-        ? tickets.map((t) => (t._id === _id ? res.data : t))
-        : [...tickets, res.data]
+      setTickets(
+        _id
+          ? tickets.map((t) => (t._id === _id ? res.data : t))
+          : [...tickets, res.data]
       );
       resetForm();
-      setToast({ show: true, message: `Ticket ${_id ? 'updated' : 'created'} successfully!`, type: 'success' });
+      setToast({ show: true, message: `Ticket ${_id ? "updated" : "created"} successfully!`, type: "success" });
+      fetchAnalytics(); // Refresh analytics after ticket creation/update
     } catch (err) {
-      setToast({ show: true, message: err.response?.data?.msg || 'An error occurred', type: 'error' });
+      setToast({ show: true, message: err.response?.data?.msg || "An error occurred", type: "error" });
     }
   };
 
   const resetForm = () => {
     setFormData({
-      _id: '',
-      title: '',
-      description: '',
-      status: 'Open',
-      priority: 'Low',
-      type: 'Support',
-      assignedTo: '',
-      escalationLevel: '',
-      dueDate: '',
+      _id: "",
+      title: "",
+      description: "",
+      status: "Open",
+      priority: "Low",
+      type: "Support",
+      assignedTo: "",
+      escalationLevel: "",
+      dueDate: "",
       attachments: [],
-      comment: '',
+      comment: "",
     });
     setAttachments([]);
     setShowModal(false);
@@ -132,9 +152,9 @@ const Tickets = () => {
   const handleEdit = (ticket) => {
     setFormData({
       ...ticket,
-      dueDate: ticket.dueDate ? new Date(ticket.dueDate).toISOString().substring(0, 10) : '',
-      assignedTo: ticket.assignedTo?.username || '',
-      comment: '',
+      dueDate: ticket.dueDate ? new Date(ticket.dueDate).toISOString().substring(0, 10) : "",
+      assignedTo: ticket.assignedTo?.username || "",
+      comment: "",
     });
     setShowModal(true);
   };
@@ -148,32 +168,33 @@ const Tickets = () => {
     try {
       const res = await axios.put(
         `https://itdesk-backend.vercel.app/api/tickets/edit/${selectedTicketId}`,
-        { assignedTo: user.username, status: 'In Progress' },
-        { headers: { Authorization: localStorage.getItem('token') } }
+        { assignedTo: user._id, status: "In Progress" },
+        { headers: { Authorization: localStorage.getItem("token") } }
       );
       setTickets(tickets.map((t) => (t._id === selectedTicketId ? res.data : t)));
       setShowTakeActionModal(false);
-      setToast({ show: true, message: 'Ticket assigned successfully!', type: 'success' });
+      setToast({ show: true, message: "Ticket assigned successfully!", type: "success" });
+      fetchAnalytics(); // Refresh analytics after assignment
     } catch (err) {
-      setToast({ show: true, message: err.response?.data?.msg || 'Assignment failed', type: 'error' });
+      setToast({ show: true, message: err.response?.data?.msg || "Assignment failed", type: "error" });
     }
   };
 
   const handleExport = async () => {
     try {
       const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/export?status=${filterStatus}`, {
-        headers: { Authorization: localStorage.getItem('token') },
-        responseType: 'blob',
+        headers: { Authorization: localStorage.getItem("token") },
+        responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', 'tickets.csv');
+      link.setAttribute("download", "tickets.csv");
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (err) {
-      setToast({ show: true, message: 'Export failed: Access denied', type: 'error' });
+      setToast({ show: true, message: "Export failed: Access denied", type: "error" });
     }
   };
 
@@ -181,16 +202,37 @@ const Tickets = () => {
     setTickets((prevTickets) =>
       prevTickets.map((t) => (t._id === updatedTicket._id ? updatedTicket : t))
     );
-    setToast({ show: true, message: 'Ticket resolved successfully!', type: 'success' });
+    setToast({ show: true, message: "Ticket resolved successfully!", type: "success" });
+    fetchAnalytics(); // Refresh analytics after update
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Open': return 'bg-blue-100 text-blue-800';
-      case 'In Progress': return 'bg-yellow-100 text-yellow-800';
-      case 'Resolved': return 'bg-green-100 text-green-800';
-      case 'Closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "Open":
+        return "bg-blue-100 text-blue-800";
+      case "In Progress":
+        return "bg-yellow-100 text-yellow-800";
+      case "Resolved":
+        return "bg-green-100 text-green-800";
+      case "Closed":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case "Low":
+        return "bg-green-100 text-green-800";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "High":
+        return "bg-orange-100 text-orange-800";
+      case "Urgent":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -198,109 +240,200 @@ const Tickets = () => {
     <div className="flex min-h-screen bg-gray-50">
       <SidebarComponent />
       <div className="flex-1 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-semibold text-gray-800 flex items-center">
-            <HiOutlineTicket className="mr-2" /> Tickets
-          </h1>
-          <div className="flex gap-4">
-            {(user?.role === 'staff' || user?.role === 'administrator') && (
-              <Button onClick={() => setShowModal(true)} color="blue">
-                New Ticket
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-semibold text-gray-800 flex items-center">
+              <HiOutlineTicket className="mr-2 text-blue-600" /> Tickets
+            </h1>
+            <div className="flex gap-4">
+              {(user?.role === "staff" || user?.role === "administrator") && (
+                <Button
+                  onClick={() => setShowModal(true)}
+                  gradientDuoTone="greenToBlue"
+                  className="font-medium"
+                >
+                  New Ticket
+                </Button>
+              )}
+              <Dropdown label={`Status: ${filterStatus}`} inline>
+                {["Open", "In Progress", "Resolved", "Closed"].map((status) => (
+                  <Dropdown.Item key={status} onClick={() => setFilterStatus(status)}>
+                    {status}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown>
+              <Button onClick={handleExport} color="gray" className="font-medium">
+                Export CSV
               </Button>
-            )}
-            <Dropdown label={`Status: ${filterStatus}`} inline>
-              {['Open', 'In Progress', 'Resolved', 'Closed'].map((status) => (
-                <Dropdown.Item key={status} onClick={() => setFilterStatus(status)}>
-                  {status}
-                </Dropdown.Item>
+            </div>
+          </div>
+
+          {/* Tickets List */}
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <Spinner size="xl" />
+              <span className="ml-3 text-gray-600">Loading tickets...</span>
+            </div>
+          ) : tickets.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              No tickets found for status: {filterStatus}
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {tickets.map((ticket) => (
+                <Card key={ticket._id} className="shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-gray-600 flex items-center">
+                        <HiOutlineTicket className="mr-1" /> {ticket.ticketNumber}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(ticket.status)}`}>
+                        {ticket.status}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-1">{ticket.title}</h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{ticket.description}</p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center">
+                        <HiOutlineUser className="mr-2 text-gray-500" />
+                        <span>{ticket.assignedTo?.username || "Unassigned"}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <HiOutlineExclamationCircle className="mr-2 text-gray-500" />
+                        <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(ticket.priority)}`}>
+                          {ticket.priority}
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <HiOutlineClock className="mr-2 text-gray-500" />
+                        <span>{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString() : "N/A"}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <HiOutlinePaperClip className="mr-2 text-gray-500" />
+                        <span>{ticket.attachments.length} attachment(s)</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex gap-2">
+                      {(user?.role === "staff" || user?.role === "administrator") ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleEdit(ticket)}
+                          gradientDuoTone="cyanToBlue"
+                        >
+                          <HiOutlinePencil className="mr-1" /> Edit
+                        </Button>
+                      ) : (
+                        !ticket.assignedTo && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleTakeAction(ticket._id)}
+                            gradientDuoTone="greenToBlue"
+                          >
+                            Take Action
+                          </Button>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </Card>
               ))}
-            </Dropdown>
-            <Button onClick={handleExport} color="gray">Export CSV</Button>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-4 mt-6">
+              <Button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                color="gray"
+              >
+                Previous
+              </Button>
+              <span className="self-center text-gray-600">Page {currentPage} of {totalPages}</span>
+              <Button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                color="gray"
+              >
+                Next
+              </Button>
+            </div>
+          )}
+
+          {/* Analytics Section */}
+          <div className="mt-10">
+            <h2 className="text-2xl font-semibold text-gray-800 flex items-center mb-6">
+              <HiOutlineChartBar className="mr-2 text-blue-600" /> Ticket Analytics & Insights
+            </h2>
+            {analytics ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Status Distribution */}
+                <Card className="shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Status Distribution</h3>
+                  <div className="space-y-2">
+                    {Object.entries(analytics.statusDistribution).map(([status, count]) => (
+                      <div key={status} className="flex justify-between items-center">
+                        <span className={`text-sm ${getStatusColor(status)} px-2 py-1 rounded-full`}>
+                          {status}
+                        </span>
+                        <span className="text-sm font-medium text-gray-600">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Priority Breakdown */}
+                <Card className="shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Priority Breakdown</h3>
+                  <div className="space-y-2">
+                    {Object.entries(analytics.priorityBreakdown).map(([priority, count]) => (
+                      <div key={priority} className="flex justify-between items-center">
+                        <span className={`text-sm ${getPriorityColor(priority)} px-2 py-1 rounded-full`}>
+                          {priority}
+                        </span>
+                        <span className="text-sm font-medium text-gray-600">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Most Common Problems */}
+                <Card className="shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Most Common Problems</h3>
+                  <ul className="list-disc list-inside text-sm text-gray-600">
+                    {analytics.commonProblems.map((problem, index) => (
+                      <li key={index}>
+                        {problem.title} <span className="text-gray-500">({problem.count} tickets)</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+
+                {/* Additional Metrics */}
+                <Card className="shadow-md">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Key Metrics</h3>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <p>Total Tickets: <span className="font-medium">{analytics.totalTickets}</span></p>
+                    <p>Average Resolution Time: <span className="font-medium">{analytics.avgResolutionTime || "N/A"}</span></p>
+                    <p>Unassigned Tickets: <span className="font-medium">{analytics.unassignedTickets}</span></p>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500">
+                Loading analytics...
+              </div>
+            )}
           </div>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-10">
-            <Spinner size="xl" />
-          </div>
-        ) : tickets.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
-            No tickets found
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {tickets.map((ticket) => (
-              <div key={ticket._id} className="bg-white rounded-lg shadow p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-600 flex items-center">
-                    <HiOutlineTicket className="mr-1" /> {ticket.ticketNumber}
-                  </span>
-                  <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(ticket.status)}`}>
-                    {ticket.status}
-                  </span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{ticket.title}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{ticket.description}</p>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center">
-                    <HiOutlineUser className="mr-2 text-gray-500" />
-                    <span>{ticket.assignedTo?.username || 'Unassigned'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <HiOutlineExclamationCircle className="mr-2 text-gray-500" />
-                    <span>{ticket.priority}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <HiOutlineClock className="mr-2 text-gray-500" />
-                    <span>{ticket.dueDate ? new Date(ticket.dueDate).toLocaleDateString() : 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <HiOutlinePaperClip className="mr-2 text-gray-500" />
-                    <span>{ticket.attachments.length} attachment(s)</span>
-                  </div>
-                </div>
-                <div className="mt-4 flex gap-2">
-                  {(user?.role === 'staff' || user?.role === 'administrator') ? (
-                    <Button size="sm" onClick={() => handleEdit(ticket)}>
-                      <HiOutlinePencil className="mr-1" /> Edit
-                    </Button>
-                  ) : (
-                    !ticket.assignedTo && (
-                      <Button size="sm" onClick={() => handleTakeAction(ticket._id)} color="blue">
-                        Take Action
-                      </Button>
-                    )
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {totalPages > 1 && (
-          <div className="flex justify-center gap-4 mt-6">
-            <Button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              color="gray"
-            >
-              Previous
-            </Button>
-            <span className="self-center">Page {currentPage} of {totalPages}</span>
-            <Button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              color="gray"
-            >
-              Next
-            </Button>
-          </div>
-        )}
-
+        {/* Modal for Creating/Editing Tickets */}
         <Modal show={showModal} onClose={resetForm}>
           <form onSubmit={handleSubmit} className="p-6">
             <h2 className="text-xl font-semibold mb-4">
-              {_id ? 'Edit Ticket' : 'Create New Ticket'}
+              {_id ? "Edit Ticket" : "Create New Ticket"}
             </h2>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
@@ -310,7 +443,7 @@ const Tickets = () => {
                   name="title"
                   value={title}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
@@ -320,7 +453,7 @@ const Tickets = () => {
                   name="status"
                   value={status}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="Open">Open</option>
                   <option value="In Progress">In Progress</option>
@@ -334,7 +467,7 @@ const Tickets = () => {
                   name="description"
                   value={description}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                   rows="3"
                   required
                 />
@@ -345,7 +478,7 @@ const Tickets = () => {
                   name="priority"
                   value={priority}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
@@ -360,7 +493,7 @@ const Tickets = () => {
                   name="dueDate"
                   value={dueDate}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div>
@@ -369,7 +502,7 @@ const Tickets = () => {
                   name="escalationLevel"
                   value={escalationLevel}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select Team</option>
                   <option value="Software Team">Software Team</option>
@@ -387,11 +520,16 @@ const Tickets = () => {
                 />
               </div>
             </div>
-            <Button type="submit" color="blue" className="w-full mt-6">
-              {_id ? 'Update Ticket' : 'Create Ticket'}
+            <Button
+              type="submit"
+              gradientDuoTone="greenToBlue"
+              className="w-full mt-6 font-medium"
+            >
+              {_id ? "Update Ticket" : "Create Ticket"}
             </Button>
           </form>
         </Modal>
+
         <TakeActionModal
           show={showTakeActionModal}
           onClose={() => setShowTakeActionModal(false)}
@@ -400,7 +538,7 @@ const Tickets = () => {
 
         {toast.show && (
           <Toast className="fixed top-4 right-4">
-            {toast.type === 'success' ? (
+            {toast.type === "success" ? (
               <HiOutlineCheckCircle className="h-5 w-5 text-green-500" />
             ) : (
               <HiOutlineExclamationCircle className="h-5 w-5 text-red-500" />
