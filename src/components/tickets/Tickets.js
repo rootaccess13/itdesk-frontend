@@ -300,7 +300,7 @@ const Tickets = () => {
           </div>
         )}
 
-        <TicketModal
+        <Modal
           show={showModal}
           onClose={resetForm}
           title={_id ? 'Edit Ticket Details' : 'All Tickets'}
