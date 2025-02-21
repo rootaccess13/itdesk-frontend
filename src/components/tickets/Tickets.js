@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import axios from "axios";
-import Modal from "../modals/ticketModal";
+import { Modal as FlowbiteModal, Spinner, Dropdown, Button, Toast, Card } from "flowbite-react"; // Use Flowbite's Modal directly
 import TakeActionModal from "../utils/TakeActionModal";
 import SidebarComponent from "../utils/SidebarComponent";
-import { Spinner, Dropdown, Button, Toast, Card } from "flowbite-react";
 import AuthContext from "../../context/AuthContext";
 import {
   HiOutlineTicket,
@@ -17,9 +16,8 @@ import {
   HiEye,
   HiDownload,
 } from "react-icons/hi";
-import jsPDF from "jspdf"; // Ensure correct import
+import { jsPDF } from "jspdf";
 
-// Log jsPDF to verify import
 console.log("jsPDF imported:", jsPDF);
 
 const Tickets = () => {
@@ -60,12 +58,12 @@ const Tickets = () => {
           params: { page, limit: 6, status: filterStatus },
           headers: { Authorization: localStorage.getItem("token") },
         });
-        setTickets(res.data.tickets || []); // Ensure tickets is an array
+        setTickets(res.data.tickets || []);
         setTotalPages(res.data.totalPages || 1);
       } catch (err) {
         console.error(err);
         setToast({ show: true, message: "Failed to fetch tickets", type: "error" });
-        setTickets([]); // Fallback to empty array
+        setTickets([]);
       } finally {
         setLoading(false);
       }
@@ -267,7 +265,6 @@ const Tickets = () => {
       <SidebarComponent />
       <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-semibold text-gray-800 flex items-center">
               <HiOutlineTicket className="mr-2 text-blue-600" /> Tickets
@@ -295,7 +292,6 @@ const Tickets = () => {
             </div>
           </div>
 
-          {/* Tickets List */}
           {loading ? (
             <div className="flex justify-center py-10">
               <Spinner size="xl" />
@@ -374,7 +370,6 @@ const Tickets = () => {
             </div>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center gap-4 mt-6">
               <Button
@@ -395,7 +390,6 @@ const Tickets = () => {
             </div>
           )}
 
-          {/* Analytics Section */}
           <div className="mt-10">
             <h2 className="text-2xl font-semibold text-gray-800 flex items-center mb-6">
               <HiOutlineChartBar className="mr-2 text-blue-600" /> Ticket Analytics & Insights
@@ -455,7 +449,7 @@ const Tickets = () => {
           </div>
 
           {/* Create/Edit Ticket Modal */}
-          <Modal show={showModal} onClose={resetForm}>
+          <FlowbiteModal show={showModal} onClose={resetForm}>
             <form onSubmit={handleSubmit} className="p-6">
               <h2 className="text-xl font-semibold mb-4">
                 {_id ? "Edit Ticket" : "Create New Ticket"}
@@ -553,14 +547,14 @@ const Tickets = () => {
                 {_id ? "Update Ticket" : "Create Ticket"}
               </Button>
             </form>
-          </Modal>
+          </FlowbiteModal>
 
           {/* View Ticket Modal */}
-          <Modal show={showViewModal} onClose={() => setShowViewModal(false)} size="lg">
-            <Modal.Header className="bg-gradient-to-r from-purple-500 to-blue-600">
+          <FlowbiteModal show={showViewModal} onClose={() => setShowViewModal(false)} size="lg">
+            <FlowbiteModal.Header className="bg-gradient-to-r from-purple-500 to-blue-600">
               <span className="text-white">Ticket Details</span>
-            </Modal.Header>
-            <Modal.Body className="space-y-4">
+            </FlowbiteModal.Header>
+            <FlowbiteModal.Body className="space-y-4">
               {selectedTicket ? (
                 <div className="text-gray-700">
                   <h3 className="text-xl font-semibold text-gray-800 mb-2">{selectedTicket.title}</h3>
@@ -598,16 +592,16 @@ const Tickets = () => {
               ) : (
                 <p className="text-gray-500">No ticket selected</p>
               )}
-            </Modal.Body>
-            <Modal.Footer>
+            </FlowbiteModal.Body>
+            <FlowbiteModal.Footer>
               <Button onClick={handleDownloadPDF} gradientDuoTone="pinkToOrange">
                 <HiDownload className="mr-2" /> Download PDF
               </Button>
               <Button onClick={() => setShowViewModal(false)} color="gray">
                 Close
               </Button>
-            </Modal.Footer>
-          </Modal>
+            </FlowbiteModal.Footer>
+          </FlowbiteModal>
 
           <TakeActionModal
             show={showTakeActionModal}
