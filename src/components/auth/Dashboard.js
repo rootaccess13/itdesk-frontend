@@ -3,11 +3,16 @@ import axios from 'axios';
 import AuthContext from '../../context/AuthContext';
 import TicketModal from '../modals/TicketModalType';
 import SidebarComponent from '../utils/SidebarComponent';
-import { Spinner } from 'flowbite-react';
-import UserStats from '../stats/UserStats';
+import { Spinner, Button } from 'flowbite-react';
+import { 
+  HiOutlineTicket, 
+  HiOutlineClock, 
+  HiOutlineCheckCircle, 
+  HiOutlineXCircle 
+} from 'react-icons/hi';
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext); // Added logout from AuthContext
   const [ticketCount, setTicketCount] = useState(null);
   const [myTicketCount, setMyTicketCount] = useState(null);
   const [myTicketCountProgress, setMyTicketCountProgress] = useState(null);
@@ -18,84 +23,52 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalTickets, setModalTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch the total number of tickets from the backend
-    axios.get('https://itdesk-backend.vercel.app/api/tickets/count', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-      .then(res => {
-        setTicketCount(res.data.count);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+    setLoading(true);
+    const fetchData = async () => {
+      try {
+        // Fetch total ticket count
+        const totalRes = await axios.get('https://itdesk-backend.vercel.app/api/tickets/count', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setTicketCount(totalRes.data.count);
 
-    // Fetch the number of tickets in progress from the backend
-    axios.get('https://itdesk-backend.vercel.app/api/tickets/count?status=In Progress', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-      .then(res => {
-        setInProgressCount(res.data.count);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+        // Fetch status-specific counts for all tickets
+        const statusPromises = ['In Progress', 'Resolved', 'Closed'].map(status =>
+          axios.get(`https://itdesk-backend.vercel.app/api/tickets/count?status=${status}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          })
+        );
 
-    // Fetch the number of tickets resolved from the backend
-    axios.get('https://itdesk-backend.vercel.app/api/tickets/count?status=Resolved', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-      .then(res => {
-        setResolvedCount(res.data.count);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+        const [inProgressRes, resolvedRes, closedRes] = await Promise.all(statusPromises);
+        setInProgressCount(inProgressRes.data.count);
+        setResolvedCount(resolvedRes.data.count);
+        setClosedCount(closedRes.data.count);
 
-    // Fetch the number of tickets closed from the backend
-    axios.get('https://itdesk-backend.vercel.app/api/tickets/count?status=Closed', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-      .then(res => {
-        setClosedCount(res.data.count);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+        // Fetch personal ticket counts if user exists
+        if (user) {
+          const personalPromises = ['Open', 'In Progress', 'Resolved'].map(status =>
+            axios.get(`https://itdesk-backend.vercel.app/api/tickets/count/personal/${user._id}?status=${status}`, {
+              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            })
+          );
 
-    // Fetch the personal ticket count for the logged-in user
-    if (user) {
-      fetchMyTicketCount(user._id);
-    }
+          const [openRes, progressRes, resolvedRes] = await Promise.all(personalPromises);
+          setMyTicketCount(openRes.data.count);
+          setMyTicketCountProgress(progressRes.data.count);
+          setMyTicketCountResolved(resolvedRes.data.count);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [user]);
-
-  const fetchMyTicketCount = async (userId) => {
-    try {
-      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/count/personal/${userId}?status=Open`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setMyTicketCount(res.data.count);
-    } catch (err) {
-      console.error(err);
-    }
-    try {
-      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/count/personal/${userId}?status=In Progress`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setMyTicketCountProgress(res.data.count);
-    } catch (err) {
-      console.error(err);
-    }
-    try {
-      const res = await axios.get(`https://itdesk-backend.vercel.app/api/tickets/count/personal/${userId}?status=Resolved`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setMyTicketCountResolved(res.data.count);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const handleCardClick = (status, title, id) => {
     setModalTitle(title);
@@ -107,70 +80,78 @@ const Dashboard = () => {
         setShowModal(true);
       })
       .catch(err => {
-        console.error(err);
+        console.error('Error fetching tickets for modal:', err);
       });
   };
 
-  const Ticketcards = [
+  const TicketCards = [
     {
       title: 'Total Tickets',
-      content: ticketCount !== null ? `${ticketCount}` : 'Loading ticket count...',
-      status: '', // Fetch all tickets
-      id: '', // or some default value if needed
-      bg: 'bg-red-200'
+      content: ticketCount !== null ? `${ticketCount}` : 'Loading...',
+      status: '',
+      id: '',
+      bg: 'bg-red-100',
+      icon: HiOutlineTicket,
     },
     {
       title: 'In Progress',
-      content: inProgressCount !== null ? `${inProgressCount}` : 'Loading in-progress count...',
+      content: inProgressCount !== null ? `${inProgressCount}` : 'Loading...',
       status: 'In Progress',
-      id: '', // or some default value if needed
-      bg: 'bg-blue-100'
+      id: '',
+      bg: 'bg-blue-100',
+      icon: HiOutlineClock,
     },
     {
       title: 'Resolved',
-      content: resolvedCount !== null ? `${resolvedCount}` : 'Loading resolved count...',
+      content: resolvedCount !== null ? `${resolvedCount}` : 'Loading...',
       status: 'Resolved',
-      id: '', // or some default value if needed
-      bg: 'bg-green-200'
+      id: '',
+      bg: 'green-100',
+      icon: HiOutlineCheckCircle,
     },
     {
       title: 'Closed',
-      content: closedCount !== null ? `${closedCount}` : 'Loading closed count...',
+      content: closedCount !== null ? `${closedCount}` : 'Loading...',
       status: 'Closed',
-      id: '', // or some default value if needed
-      bg: 'bg-yellow-200'
-    }
+      id: '',
+      bg: 'bg-yellow-100',
+      icon: HiOutlineXCircle,
+    },
   ];
 
-  const MyTicketcards = [
+  const MyTicketCards = [
     {
       title: 'New Tickets',
-      content: myTicketCount !== null ? `${myTicketCount}` : 'Loading ticket count...',
-      status: 'Open', // Fetch all personal tickets
+      content: myTicketCount !== null ? `${myTicketCount}` : 'Loading...',
+      status: 'Open',
       id: user ? user._id : '',
-      bg: 'bg-red-200'
+      bg: 'bg-red-100',
+      icon: HiOutlineTicket,
     },
     {
       title: 'In Progress',
-      content: myTicketCountProgress !== null ? `${myTicketCountProgress}` : 'Loading in-progress count...',
+      content: myTicketCountProgress !== null ? `${myTicketCountProgress}` : 'Loading...',
       status: 'In Progress',
       id: user ? user._id : '',
-      bg: 'bg-blue-100'
+      bg: 'bg-blue-100',
+      icon: HiOutlineClock,
     },
     {
       title: 'Resolved',
-      content: myTicketCountResolved !== null ? `${myTicketCountResolved}` : 'Loading resolved count...',
+      content: myTicketCountResolved !== null ? `${myTicketCountResolved}` : 'Loading...',
       status: 'Resolved',
       id: user ? user._id : '',
-      bg: 'bg-green-200'
+      bg: 'bg-green-100',
+      icon: HiOutlineCheckCircle,
     },
     {
       title: 'Closed',
-      content: closedCount !== null ? `${closedCount}` : 'Loading closed count...',
+      content: closedCount !== null ? `${closedCount}` : 'Loading...',
       status: 'Closed',
       id: user ? user._id : '',
-      bg: 'bg-yellow-200'
-    }
+      bg: 'bg-yellow-100',
+      icon: HiOutlineXCircle,
+    },
   ];
 
   if (!user) {
@@ -182,87 +163,78 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-50">
       <SidebarComponent />
-      <div className="w-full m-4 p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700">
-        <div className="container mx-auto p-4">
-          <div className='w-full flex justify-between items-center mb-4 bg-gray-100 p-2'>
-            <p className='font-bold text-md bg-gray-100 p-2'>Welcome, {user.username}</p>
-            <button className='font-bold text-md bg-gray-100 p-2'>Logout</button>
-          </div>
-
-          {(user.role === 'staff' || user.role === 'administrator') ? (
-            <>
-              <h1 className='text-2xl font-bold underline'>
-                Tickets
-              </h1>
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                {Ticketcards.map((card, index) => (
-                  <div
-                    key={index}
-                    className={`flex flex-col ${card.bg} text-center rounded-lg border border-gray-200 shadow-md dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer`}
-                    onClick={() => handleCardClick(card.status, card.title, card.id)}
-                  >
-                    <div className="flex h-full flex-col justify-center gap-4 p-6">
-                      <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                        {card.title}
-                      </h5>
-                      <p className="font-bold text-lg text-gray-700 dark:text-gray-400">
-                        {card.content}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) :
-            <>
-              <h1 className='text-2xl font-bold underline'>
-                My Tickets
-              </h1>
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                {MyTicketcards.map((card, index) => (
-                  <div
-                    key={index}
-                    className={`flex flex-col ${card.bg} text-center rounded-lg border border-gray-200 shadow-md dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer`}
-                    onClick={() => handleCardClick(card.status, card.title, card.id)}
-                  >
-                    <div className="flex h-full flex-col justify-center gap-4 p-6">
-                      <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                        {card.title}
-                      </h5>
-                      <p className="font-bold text-lg text-gray-700 dark:text-gray-400">
-                        {card.content}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          }
-
-          <h1 className='text-2xl font-bold mt-4 underline'>
-            Users
-          </h1>
-
-
+      <div className="flex-1 p-6">
+        <div className="flex justify-between items-center mb-6 bg-gray-100 p-4 rounded-lg shadow">
+          <h1 className="text-2xl font-bold text-gray-800">Welcome, {user.username}</h1>
+          <Button 
+            onClick={logout} 
+            color="gray" 
+            size="sm"
+            className="hover:bg-gray-300 transition-colors"
+          >
+            Logout
+          </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <div>
-              <UserStats />
-            </div>
-            <div>
-              <UserStats />
-            </div>
-          </div>
-      </div>
 
-      <TicketModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        title={modalTitle}
-        tickets={modalTickets}
-      />
+        {(user.role === 'staff' || user.role === 'administrator') ? (
+          <>
+            <h1 className="text-2xl font-bold mb-6 text-gray-800">Tickets Overview</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              {TicketCards.map((card, index) => (
+                <div
+                  key={index}
+                  className={`p-6 rounded-lg shadow-md ${card.bg} border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer`}
+                  onClick={() => handleCardClick(card.status, card.title, card.id)}
+                >
+                  <div className="flex flex-col items-center gap-4">
+                    <card.icon className="text-3xl text-gray-600" />
+                    <h3 className="text-lg font-semibold text-gray-800">{card.title}</h3>
+                    <p className="text-xl font-bold text-gray-700">
+                      {card.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <h1 className="text-2xl font-bold mb-6 text-gray-800">My Tickets</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              {MyTicketCards.map((card, index) => (
+                <div
+                  key={index}
+                  className={`p-6 rounded-lg shadow-md ${card.bg} border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer`}
+                  onClick={() => handleCardClick(card.status, card.title, card.id)}
+                >
+                  <div className="flex flex-col items-center gap-4">
+                    <card.icon className="text-3xl text-gray-600" />
+                    <h3 className="text-lg font-semibold text-gray-800">{card.title}</h3>
+                    <p className="text-xl font-bold text-gray-700">
+                      {card.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <TicketModal
+          show={showModal}
+          onClose={() => setShowModal(false)}
+          title={modalTitle}
+          tickets={modalTickets}
+        />
+
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">
+            <Spinner size="xl" />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
