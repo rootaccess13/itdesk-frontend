@@ -78,6 +78,7 @@ const Users = () => {
         <div className="w-full lg:w-3/4 overflow-x-auto mb-4 lg:mb-0">
           <Table hoverable>
             <Table.Head>
+              <Table.HeadCell>ID Number</Table.HeadCell>
               <Table.HeadCell>First Name</Table.HeadCell>
               <Table.HeadCell>Last Name</Table.HeadCell>
               <Table.HeadCell>Username</Table.HeadCell>
@@ -100,6 +101,9 @@ const Users = () => {
               ) : (
                 users.map(user => (
                   <Table.Row key={user._id} className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                      {user.idNumber}
+                    </Table.Cell>
                     <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                       {user.firstName}
                     </Table.Cell>
