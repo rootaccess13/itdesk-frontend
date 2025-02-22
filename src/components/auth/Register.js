@@ -12,11 +12,12 @@ const Register = () => {
     username: '',
     email: '',
     phoneNumber: '',
+    idNumber: '',
     password: '',
     repeatPassword: ''
   });
 
-  const { firstName, lastName, username, email, phoneNumber, password, repeatPassword } = formData;
+  const { firstName, lastName, username, email, phoneNumber, idNumber, password, repeatPassword } = formData;
   const navigate = useNavigate();
   const [toast, setToast] = useState({ show: false, message: '' });
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ const Register = () => {
       return;
     }
 
-    const newUser = { firstName, lastName, username, email, phoneNumber, password };
+    const newUser = { firstName, lastName, username, email, phoneNumber, idNumber, password };
     setLoading(true);
 
     try {
@@ -43,6 +44,7 @@ const Register = () => {
         username: '',
         email: '',
         phoneNumber: '',
+        idNumber: '',
         password: '',
         repeatPassword: ''
       });
@@ -68,6 +70,7 @@ const Register = () => {
         username: `${given_name}${family_name}`,
         email,
         phoneNumber: 'N/A',
+        idNumber: 'N/A', // Added for Google auth
         password: 'oauth-user'
       });
 
@@ -82,116 +85,138 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-2xl"> {/* Increased max-width */}
         <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white text-center">
           Create New Account
         </h1>
         
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="firstName"
-                id="firstName"
-                className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                value={firstName}
-                onChange={onChange}
-                required
-              />
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  id="firstName"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={firstName}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={email}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="phoneNumber" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  id="phoneNumber"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={phoneNumber}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  id="password"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={password}
+                  onChange={onChange}
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="lastName"
-                id="lastName"
-                className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                value={lastName}
-                onChange={onChange}
-                required
-              />
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  id="lastName"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={lastName}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  id="username"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={username}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="idNumber" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  ID Number
+                </label>
+                <input
+                  type="text"
+                  name="idNumber"
+                  id="idNumber"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={idNumber}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="repeatPassword" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  name="repeatPassword"
+                  id="repeatPassword"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  value={repeatPassword}
+                  onChange={onChange}
+                  required
+                />
+              </div>
             </div>
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              value={email}
-              onChange={onChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Username
-            </label>
-            <input
-              type="text"
-              name="username"
-              id="username"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              value={username}
-              onChange={onChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="phoneNumber" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              id="phoneNumber"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              value={phoneNumber}
-              onChange={onChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              value={password}
-              onChange={onChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="repeatPassword" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="repeatPassword"
-              id="repeatPassword"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              value={repeatPassword}
-              onChange={onChange}
-              required
-            />
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
